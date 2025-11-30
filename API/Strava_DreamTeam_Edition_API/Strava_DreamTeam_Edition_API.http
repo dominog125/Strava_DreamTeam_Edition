@@ -1,0 +1,6 @@
+@Strava_DreamTeam_Edition_API_HostAddress = http://localhost:5162
+
+GET {{Strava_DreamTeam_Edition_API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

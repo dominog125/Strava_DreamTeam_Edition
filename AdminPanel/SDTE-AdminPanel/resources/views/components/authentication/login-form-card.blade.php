@@ -8,7 +8,9 @@
             Wpisz swój login i hasło, aby przejść do panelu administratora.
         </p>
 
-        <form class="space-y-4" method="post" action="#">
+        <form method="post" action="{{ route('login.process') }}" class="space-y-4" autocomplete="off">
+            @csrf
+
             <div class="space-y-1.5">
                 <label for="login" class="block text-sm font-semibold">
                     Login:
@@ -18,6 +20,7 @@
                     name="login"
                     type="text"
                     autocomplete="username"
+                    value="{{ old('login') }}"
                     class="block w-full rounded-xl border border-gray-300 dark:border-gray-600
                            bg-white dark:bg-gray-900/80
                            px-3 py-2 text-sm
@@ -25,6 +28,9 @@
                            focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
                            transition"
                 >
+                @error('login')
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="space-y-1.5">
@@ -43,11 +49,14 @@
                            focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
                            transition"
                 >
+                @error('password')
+                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="pt-2">
                 <button
-                    type="button"
+                    type="submit"
                     class="w-full rounded-full
                            bg-gradient-to-r from-orange-500 to-orange-600
                            text-white font-semibold text-sm

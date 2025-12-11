@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/production/php-fpm/Dockerfile
+    env_file:
+      - .env.production
+    networks:
+      - app-network
+    volumes:
+      - .:/var/wwxw/html
+      - storage:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/production/nginx/Dockerfile
+    depends_on:
+      - app
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+    volumes:
+      - .:/var/www/html
+      - storage:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+
+volumes:
+  db-data:
+  storage:
+  bootstrap-cache:

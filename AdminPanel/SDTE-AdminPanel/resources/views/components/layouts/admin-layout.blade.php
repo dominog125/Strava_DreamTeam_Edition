@@ -33,9 +33,9 @@
                         />
 
                         <x-ui.header-nav-button
-                            href="#"
-                            label="Ustawienia"
-                            abbr="S"
+                            href="{{ route('administrator.activities') }}"
+                            label="Aktywności"
+                            abbr="A"
                             class="w-full"
                         />
 
@@ -62,9 +62,9 @@
                         />
 
                         <x-ui.header-nav-button
-                            href="#"
-                            label="Ustawienia"
-                            abbr="S"
+                            href="{{ route('administrator.activities') }}"
+                            label="Aktywności"
+                            abbr="A"
                         />
 
                         <x-ui.header-nav-button

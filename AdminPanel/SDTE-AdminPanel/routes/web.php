@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\AdministratorDashboardController;
 use App\Http\Controllers\AdministratorUserController;
+use App\Http\Controllers\AdministratorActivitiesController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -23,3 +24,6 @@ Route::middleware(['auth', 'administrator'])->group(function () {
     Route::get('/admin/users', [AdministratorUserController::class, 'index'])
         ->name('administrator.users.index');
 });
+
+Route::get('/admin/activities', [AdministratorActivitiesController::class, 'index'])
+    ->name('administrator.activities');

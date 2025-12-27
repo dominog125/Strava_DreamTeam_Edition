@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_administrator',
+        'is_discord_connected',
+        'is_google_connected',
     ];
 
     /**
@@ -43,6 +46,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_discord_connected' => 'bool',
+            'is_google_connected' => 'bool',
         ];
     }
 }

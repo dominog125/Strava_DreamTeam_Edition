@@ -26,7 +26,7 @@
                         />
 
                         <x-ui.header-nav-button
-                            href="#"
+                            href="{{ route('administrator.users.index') }}"
                             label="Użytkownicy"
                             abbr="U"
                             class="w-full"
@@ -56,7 +56,7 @@
                         />
 
                         <x-ui.header-nav-button
-                            href="#"
+                            href="{{ route('administrator.users.index') }}"
                             label="Użytkownicy"
                             abbr="U"
                         />

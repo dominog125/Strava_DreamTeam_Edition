@@ -30,6 +30,8 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'is_administrator' => false,
+            'is_discord_connected' => false,
+            'is_google_connected' => false,
         ];
     }
 

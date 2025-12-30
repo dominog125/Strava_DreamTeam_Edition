@@ -2,46 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Application\Administration\Users\AdministratorUsersFilters;
+use App\Application\Administration\Users\AdministratorUsersReader;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class AdministratorUserController extends Controller
 {
+    public function __construct(
+        private readonly AdministratorUsersReader $administratorUsersReader
+    ) {
+    }
+
     public function index(Request $request): View
     {
-        $administrator = Auth::user();
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = $perPage > 0 ? $perPage : 10;
 
-        $searchName = $request->string('search_name')->trim();
-        $searchEmail = $request->string('search_email')->trim();
-        $perPage = $request->integer('per_page') ?: 10;
+        $filters = new AdministratorUsersFilters(
+            searchName: $request->input('search_name') ?: null,
+            searchEmail: $request->input('search_email') ?: null,
+            perPage: $perPage,
+        );
 
-        if (! in_array($perPage, [10, 25, 50, 100], true)) {
-            $perPage = 10;
-        }
-
-        $query = User::query();
-
-        if ($searchName->isNotEmpty()) {
-            $query->where('name', 'like', '%' . $searchName . '%');
-        }
-
-        if ($searchEmail->isNotEmpty()) {
-            $query->where('email', 'like', '%' . $searchEmail . '%');
-        }
-
-        $users = $query
-            ->orderBy('name')
-            ->paginate($perPage)
-            ->withQueryString();
+        $users = $this->administratorUsersReader
+            ->paginate($filters)
+            ->appends($request->query());
 
         return view('admin.users.index', [
-            'administrator' => $administrator,
             'users' => $users,
-            'searchName' => $searchName->toString(),
-            'searchEmail' => $searchEmail->toString(),
-            'perPage' => $perPage,
+            'searchName' => $filters->searchName ?? '',
+            'searchEmail' => $filters->searchEmail ?? '',
+            'perPage' => $filters->perPage,
         ]);
     }
 }

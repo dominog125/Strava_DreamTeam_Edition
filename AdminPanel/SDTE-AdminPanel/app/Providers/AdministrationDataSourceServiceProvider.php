@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Providers;
+
+use App\Application\Administration\Activities\AdministratorActivitiesReader;
+use App\Application\Administration\Authentication\AdministratorAuthenticator;
+use App\Application\Administration\Dashboard\AdministratorDashboardStatisticsReader;
+use App\Application\Administration\Users\AdministratorUsersReader;
+use App\Infrastructure\Administration\Activities\ApiAdministratorActivitiesReader;
+use App\Infrastructure\Administration\Activities\DatabaseAdministratorActivitiesReader;
+use App\Infrastructure\Administration\Authentication\ApiAdministratorAuthenticator;
+use App\Infrastructure\Administration\Authentication\DatabaseAdministratorAuthenticator;
+use App\Infrastructure\Administration\Dashboard\ApiAdministratorDashboardStatisticsReader;
+use App\Infrastructure\Administration\Dashboard\DatabaseAdministratorDashboardStatisticsReader;
+use App\Infrastructure\Administration\Users\ApiAdministratorUsersReader;
+use App\Infrastructure\Administration\Users\DatabaseAdministratorUsersReader;
+use Illuminate\Support\ServiceProvider;
+
+class AdministrationDataSourceServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $dataSource = config('administration.data_source');
+
+        $this->app->bind(
+            AdministratorActivitiesReader::class,
+            $dataSource === 'api' ? ApiAdministratorActivitiesReader::class : DatabaseAdministratorActivitiesReader::class
+        );
+
+        $this->app->bind(
+            AdministratorUsersReader::class,
+            $dataSource === 'api' ? ApiAdministratorUsersReader::class : DatabaseAdministratorUsersReader::class
+        );
+
+        $this->app->bind(
+            AdministratorDashboardStatisticsReader::class,
+            $dataSource === 'api'
+                ? ApiAdministratorDashboardStatisticsReader::class
+                : DatabaseAdministratorDashboardStatisticsReader::class
+        );
+
+        $this->app->bind(
+            AdministratorAuthenticator::class,
+            $dataSource === 'api' ? ApiAdministratorAuthenticator::class : DatabaseAdministratorAuthenticator::class
+        );
+    }
+}

@@ -22,8 +22,9 @@ Route::middleware(['auth', 'administrator'])->group(function () {
         ->name('administrator.dashboard');
 
     Route::get('/admin/users', [AdministratorUserController::class, 'index'])
-        ->name('administrator.users.index');
+        ->name('administrator.users');
+    
+    Route::get('/admin/activities', [AdministratorActivitiesController::class, 'index'])
+    ->name('administrator.activities');
 });
 
-Route::get('/admin/activities', [AdministratorActivitiesController::class, 'index'])
-    ->name('administrator.activities');

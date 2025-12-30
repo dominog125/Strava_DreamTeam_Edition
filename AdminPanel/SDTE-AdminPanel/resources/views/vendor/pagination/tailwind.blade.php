@@ -36,7 +36,7 @@
                                dark:focus:ring-offset-gray-900
                                transition"
                     >
-                        « {{ __('pagination.previous') }}
+                        {!! __('pagination.previous') !!}
                     </a>
                 </li>
             @endif
@@ -122,7 +122,7 @@
                                dark:bg-gray-800/80 dark:border-gray-600 dark:text-gray-500
                                cursor-not-allowed opacity-70"
                     >
-                        {{ __('pagination.next') }} »
+                        {!! __('pagination.next') !!}
                     </span>
                 </li>
             @endif

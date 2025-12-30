@@ -3,52 +3,31 @@
         <x-admin.section-card title="Filtr użytkowników">
             <form method="get" class="grid gap-4 md:grid-cols-[2fr_2fr_auto] md:items-end">
                 <x-ui.form-group label="Nazwa użytkownika" for="search_name">
-                    <input
+                    <x-ui.form-input
                         id="search_name"
                         name="search_name"
                         type="text"
-                        value="{{ $searchName }}"
-                        class="block w-full rounded-xl border border-gray-300 dark:border-gray-600
-                               bg-white dark:bg-gray-900/80
-                               px-3 py-2 text-sm
-                               text-gray-900 dark:text-gray-100
-                               focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-                               transition"
-                    >
+                        :value="$searchName"
+                    />
                 </x-ui.form-group>
 
                 <x-ui.form-group label="Email" for="search_email">
-                    <input
+                    <x-ui.form-input
                         id="search_email"
                         name="search_email"
                         type="text"
-                        value="{{ $searchEmail }}"
-                        class="block w-full rounded-xl border border-gray-300 dark:border-gray-600
-                               bg-white dark:bg-gray-900/80
-                               px-3 py-2 text-sm
-                               text-gray-900 dark:text-gray-100
-                               focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-                               transition"
-                    >
+                        :value="$searchEmail"
+                    />
                 </x-ui.form-group>
 
                 <x-ui.form-group label="Użytkowników na stronę" for="per_page">
-                    <select
-                        id="per_page"
-                        name="per_page"
-                        class="block w-full rounded-xl border border-gray-300 dark:border-gray-600
-                               bg-white dark:bg-gray-900/80
-                               px-3 py-2 text-sm
-                               text-gray-900 dark:text-gray-100
-                               focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-                               transition"
-                    >
+                    <x-ui.form-select id="per_page" name="per_page">
                         @foreach ([10, 25, 50, 100] as $option)
                             <option value="{{ $option }}" @selected($perPage === $option)>
                                 {{ $option }}
                             </option>
                         @endforeach
-                    </select>
+                    </x-ui.form-select>
                 </x-ui.form-group>
 
                 <div class="md:col-span-3 flex justify-end pt-1">

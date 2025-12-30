@@ -2,24 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Application\Administration\Dashboard\AdministratorDashboardStatisticsReader;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class AdministratorDashboardController extends Controller
 {
+    public function __construct(
+        private readonly AdministratorDashboardStatisticsReader $administratorDashboardStatisticsReader
+    ) {
+    }
+
     public function index(): View
     {
         $administrator = Auth::user();
-
-        $userCount = 42;
-        $activityCount = 123;
-        $totalDistanceKilometers = 987.65;
+        $statistics = $this->administratorDashboardStatisticsReader->read();
 
         return view('admin.dashboard', [
-            'administrator'             => $administrator,
-            'userCount'                 => $userCount,
-            'activityCount'             => $activityCount,
-            'totalDistanceKilometers'   => $totalDistanceKilometers,
+            'administrator' => $administrator,
+            'userCount' => $statistics->userCount,
+            'activityCount' => $statistics->activityCount,
+            'totalDistanceKilometers' => $statistics->totalDistanceKilometers,
         ]);
     }
 }

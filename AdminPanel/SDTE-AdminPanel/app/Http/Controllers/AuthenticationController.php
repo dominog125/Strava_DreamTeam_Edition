@@ -2,36 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AuthenticationLoginRequest;
+use App\Application\Administration\Authentication\AdministratorAuthenticator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuthenticationController extends Controller
 {
-    public function showLoginForm(): View|RedirectResponse
-    {
-        if (Auth::check() && Auth::user()->is_administrator) {
-            return redirect()->route('administrator.dashboard');
-        }
+    public function __construct(
+        private readonly AdministratorAuthenticator $administratorAuthenticator
+    ) {
+    }
 
+    public function showLoginForm(): View
+    {
         return view('auth.login');
     }
 
-    public function authenticate(AuthenticationLoginRequest $request): RedirectResponse
+    public function authenticate(Request $request): RedirectResponse
     {
-        $credentials = [
-            'name' => $request->input('login'),
-            'password' => $request->input('password'),
-            'is_administrator' => true,
-        ];
+        $validated = $request->validate([
+            'login' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string', 'max:255'],
+        ]);
 
-        if (! Auth::attempt($credentials)) {
-            throw ValidationException::withMessages([
-                'password' => 'Błąd w loginie lub haśle.',
-            ]);
+        $result = $this->administratorAuthenticator->authenticate(
+            $validated['login'],
+            $validated['password']
+        );
+
+        if (! $result->isSuccessful) {
+            return back()
+                ->withErrors(['password' => $result->failureMessage ?? 'Błąd w loginie/haśle'])
+                ->onlyInput('login');
         }
 
         $request->session()->regenerate();

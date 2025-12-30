@@ -19,11 +19,6 @@ D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\Strava_DreamTeam_Edition_API.sourcelink.json
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets.build.json
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets.development.json
-D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets\msbuild.Strava_DreamTeam_Edition_API.Microsoft.AspNetCore.StaticWebAssets.props
-D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets\msbuild.build.Strava_DreamTeam_Edition_API.props
-D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Strava_DreamTeam_Edition_API.props
-D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Strava_DreamTeam_Edition_API.props
-D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets.pack.json
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\scopedcss\bundle\Strava_DreamTeam_Edition_API.styles.css
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\Strava_D.B4E7E659.Up2Date
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\Strava_DreamTeam_Edition_API.dll
@@ -31,3 +26,11 @@ D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\Strava_DreamTeam_Edition_API.pdb
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\Strava_DreamTeam_Edition_API.genruntimeconfig.cache
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\ref\Strava_DreamTeam_Edition_API.dll
+D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\bin\Debug\net8.0\Strava_DreamTeam_Edition_API.staticwebassets.endpoints.json
+D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\rpswa.dswa.cache.json
+D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\rjimswa.dswa.cache.json
+D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets.build.json.cache
+D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

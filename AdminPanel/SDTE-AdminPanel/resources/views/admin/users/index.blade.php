@@ -30,28 +30,17 @@
                     </x-ui.form-select>
                 </x-ui.form-group>
 
-                <div class="md:col-span-3 flex justify-end pt-1">
-                    <button
-                        type="submit"
-                        class="rounded-full
-                               bg-gradient-to-r from-orange-500 to-orange-600
-                               text-white font-semibold text-xs
-                               px-5 py-2
-                               shadow-lg shadow-orange-500/40
-                               hover:from-orange-600 hover:to-orange-700
-                               focus:outline-none focus:ring-2 focus:ring-orange-400
-                               focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-800
-                               transition"
-                    >
+                <div class="md:col-span-3 flex md:justify-end pt-1">
+                    <x-ui.primary-button type="submit" class="w-full md:w-auto px-5 py-2 text-xs">
                         Zastosuj filtr
-                    </button>
+                    </x-ui.primary-button>
                 </div>
             </form>
         </x-admin.section-card>
 
         <x-admin.section-card title="Lista użytkowników">
             @if ($users->isEmpty())
-                <p class="text-sm text-gray-600 dark:text-gray-300">
+                <p class="app-text-muted">
                     Brak użytkowników dla wybranych filtrów.
                 </p>
             @else
@@ -84,7 +73,7 @@
                         </thead>
                         <tbody>
                             @foreach ($users as $user)
-                                <tr class="bg-gray-200 dark:bg-gray-900/80 shadow-sm">
+                                <tr class="app-table-row">
                                     <x-admin.users.cell rounded="left">
                                         {{ $user->name }}
                                     </x-admin.users.cell>

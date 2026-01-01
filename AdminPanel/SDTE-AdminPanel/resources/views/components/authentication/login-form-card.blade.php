@@ -6,51 +6,35 @@
 >
     @csrf
 
-    <div class="space-y-1.5">
-        <label for="login" class="block text-sm font-semibold">
-            Login:
-        </label>
-        <input
+    <x-ui.form-group label="Login:" for="login" class="space-y-1.5">
+        <x-ui.form-input
             id="login"
             name="login"
             type="text"
             autocomplete="username"
-            value="{{ old('login') }}"
-            class="block w-full rounded-xl border border-gray-300 dark:border-gray-600
-                   bg-white dark:bg-gray-900/80
-                   px-3 py-2 text-sm
-                   text-gray-900 dark:text-gray-100
-                   focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-                   transition"
-        >
-        @error('login')
-            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
-    </div>
+            :value="old('login')"
+        />
 
-    <div class="space-y-1.5">
-        <label for="password" class="block text-sm font-semibold">
-            Hasło:
-        </label>
-        <input
+        @error('login')
+            <p class="app-form-error">{{ $message }}</p>
+        @enderror
+    </x-ui.form-group>
+
+    <x-ui.form-group label="Hasło:" for="password" class="space-y-1.5">
+        <x-ui.form-input
             id="password"
             name="password"
             type="password"
             autocomplete="current-password"
-            class="block w-full rounded-xl border border-gray-300 dark:border-gray-600
-                   bg-white dark:bg-gray-900/80
-                   px-3 py-2 text-sm
-                   text-gray-900 dark:text-gray-100
-                   focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-                   transition"
-        >
+        />
+
         @error('password')
-            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+            <p class="app-form-error">{{ $message }}</p>
         @enderror
-    </div>
+    </x-ui.form-group>
 
     <div class="pt-2">
-        <x-ui.primary-button>
+        <x-ui.primary-button type="submit" class="w-full">
             Zaloguj się
         </x-ui.primary-button>
     </div>

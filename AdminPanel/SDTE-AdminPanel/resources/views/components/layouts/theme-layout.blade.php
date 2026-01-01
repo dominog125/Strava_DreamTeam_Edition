@@ -7,7 +7,7 @@
 
     @vite('resources/css/app.css')
 </head>
-<body class="min-h-screen bg-gray-200 text-gray-900 dark:bg-gray-900 dark:text-gray-100 antialiased">
+<body class="app-page">
     {{ $slot }}
 </body>
 </html>

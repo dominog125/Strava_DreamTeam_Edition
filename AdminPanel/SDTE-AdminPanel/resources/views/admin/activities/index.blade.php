@@ -77,6 +77,12 @@
         </x-admin.section-card>
 
         <x-admin.section-card title="Lista aktywności">
+            @if (session('status'))
+                <div class="app-flash-success mb-3">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             @if ($activities->isEmpty())
                 <p class="app-text-muted">
                     Brak aktywności dla wybranych filtrów.
@@ -96,6 +102,7 @@
                                 <x-ui.table.header-cell>Data dodania</x-ui.table.header-cell>
                                 <x-ui.table.header-cell>Typ aktywności</x-ui.table.header-cell>
                                 <x-ui.table.header-cell align="right">Długość</x-ui.table.header-cell>
+                                <x-ui.table.header-cell align="right">Akcje</x-ui.table.header-cell>
                             </tr>
                         </thead>
                         <tbody>
@@ -113,8 +120,23 @@
                                         {{ $activity->activity_type }}
                                     </x-ui.table.cell>
 
-                                    <x-ui.table.cell align="right" rounded="right">
+                                    <x-ui.table.cell align="right">
                                         {{ number_format((float) ($activity->distance_kilometers ?? 0), 2, ',', ' ') }} km
+                                    </x-ui.table.cell>
+
+                                    <x-ui.table.cell align="right" rounded="right">
+                                        <form
+                                            method="post"
+                                            action="{{ route('administrator.activities.destroy', $activity) }}"
+                                            onsubmit="return confirm('Czy na pewno usunąć tę aktywność?');"
+                                        >
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <x-ui.danger-button type="submit" class="px-4 py-1.5 text-xs">
+                                                Usuń
+                                            </x-ui.danger-button>
+                                        </form>
                                     </x-ui.table.cell>
                                 </tr>
                             @endforeach

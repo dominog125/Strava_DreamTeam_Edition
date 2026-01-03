@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Application\Administration\Activities\AdministratorActivitiesDeleter;
 use App\Models\Activity;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
@@ -80,5 +82,14 @@ class AdministratorActivitiesController extends Controller
                 'per_page' => $perPage,
             ],
         ]);
+    }
+
+    public function destroy(Activity $activity, AdministratorActivitiesDeleter $activitiesDeleter): RedirectResponse
+    {
+        $activitiesDeleter->delete((string) $activity->uuid);
+
+        return redirect()
+            ->back()
+            ->with('status', 'Aktywność została usunięta.');
     }
 }

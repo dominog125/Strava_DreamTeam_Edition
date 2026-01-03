@@ -2,11 +2,14 @@
 
 namespace App\Providers;
 
+use App\Application\Administration\Activities\AdministratorActivitiesDeleter;
 use App\Application\Administration\Activities\AdministratorActivitiesReader;
 use App\Application\Administration\Authentication\AdministratorAuthenticator;
 use App\Application\Administration\Dashboard\AdministratorDashboardStatisticsReader;
 use App\Application\Administration\Users\AdministratorUsersReader;
+use App\Infrastructure\Administration\Activities\ApiAdministratorActivitiesDeleter;
 use App\Infrastructure\Administration\Activities\ApiAdministratorActivitiesReader;
+use App\Infrastructure\Administration\Activities\DatabaseAdministratorActivitiesDeleter;
 use App\Infrastructure\Administration\Activities\DatabaseAdministratorActivitiesReader;
 use App\Infrastructure\Administration\Authentication\ApiAdministratorAuthenticator;
 use App\Infrastructure\Administration\Authentication\DatabaseAdministratorAuthenticator;
@@ -25,6 +28,11 @@ class AdministrationDataSourceServiceProvider extends ServiceProvider
         $this->app->bind(
             AdministratorActivitiesReader::class,
             $dataSource === 'api' ? ApiAdministratorActivitiesReader::class : DatabaseAdministratorActivitiesReader::class
+        );
+
+        $this->app->bind(
+            AdministratorActivitiesDeleter::class,
+            $dataSource === 'api' ? ApiAdministratorActivitiesDeleter::class : DatabaseAdministratorActivitiesDeleter::class
         );
 
         $this->app->bind(

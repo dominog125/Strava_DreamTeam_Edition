@@ -23,8 +23,10 @@ Route::middleware(['auth', 'administrator'])->group(function () {
 
     Route::get('/admin/users', [AdministratorUserController::class, 'index'])
         ->name('administrator.users');
-    
-    Route::get('/admin/activities', [AdministratorActivitiesController::class, 'index'])
-    ->name('administrator.activities');
-});
 
+    Route::get('/admin/activities', [AdministratorActivitiesController::class, 'index'])
+        ->name('administrator.activities');
+
+    Route::delete('/admin/activities/{activity}', [AdministratorActivitiesController::class, 'destroy'])
+        ->name('administrator.activities.destroy');
+});

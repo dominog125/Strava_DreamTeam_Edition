@@ -33,8 +33,8 @@
         @enderror
     </x-ui.form-group>
 
-    <div class="pt-2">
-        <x-ui.primary-button type="submit" class="w-full">
+    <div class="pt-4 flex justify-center">
+        <x-ui.primary-button type="submit" class="px-8 py-3 text-sm">
             Zaloguj się
         </x-ui.primary-button>
     </div>

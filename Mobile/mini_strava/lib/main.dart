@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'app.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'core/di/injector.dart';
+import 'app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  setupInjector();
+  final prefs = await SharedPreferences.getInstance();
+
+  setupInjector(prefs);
   runApp(const MiniStravaApp());
 }
-//sprawdzam

@@ -1,34 +1,55 @@
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+
+import '../network/network_info.dart';
+
 
 import '../../features/auth/data/repositories/auth_repository_fake.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/login_usecase.dart';
-import '../../features/profile/data/repositories/profile_repository_fake.dart';
+
+
+import '../../features/profile/data/datasources/profile_local_data_source.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 import '../../features/profile/domain/usecases/get_profile_usecase.dart';
 import '../../features/profile/domain/usecases/save_profile_usecase.dart';
 
+import '../../features/activity/data/repositories/activity_repository_fake.dart';
+import '../../features/activity/domain/repositories/activity_repository.dart';
+import '../../features/activity/domain/usecases/save_activity_usecase.dart';
+
 
 final sl = GetIt.instance;
 
-/// Clean Architecture DI
-/// NOTE: Na razie bez API -> używamy Fake repo.
-/// TODO(API): podmień AuthRepositoryFake na AuthRepositoryImpl i dodaj ApiClient/RemoteDataSource.
-void setupInjector() {
-  // ✅ zabezpieczenie przed rejestracją 2x (hot restart itp.)
-  if (sl.isRegistered<AuthRepository>()) return;
-  // --- PROFILE (fake) ---
-  if (!sl.isRegistered<ProfileRepository>()) {
-    sl.registerLazySingleton<ProfileRepository>(() => ProfileRepositoryFake());
-    sl.registerLazySingleton<GetProfileUseCase>(() => GetProfileUseCase(sl<ProfileRepository>()));
-    sl.registerLazySingleton<SaveProfileUseCase>(() => SaveProfileUseCase(sl<ProfileRepository>()));
-  }
+void setupInjector(SharedPreferences prefs) {
+
+  if (sl.isRegistered<SharedPreferences>()) return;
 
 
-  // --- DATA (fake) ---
-  // TODO(API): tutaj w przyszłości będzie AuthRepositoryImpl(...)
+  sl.registerLazySingleton<SharedPreferences>(() => prefs);
+  sl.registerLazySingleton(() => Connectivity());
+  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+
+
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryFake());
+  sl.registerLazySingleton<LoginUseCase>(() => LoginUseCase(sl()));
 
-  // --- DOMAIN ---
-  sl.registerLazySingleton<LoginUseCase>(() => LoginUseCase(sl<AuthRepository>()));
+
+  sl.registerLazySingleton<ProfileLocalDataSource>(
+        () => ProfileLocalDataSourceImpl(sl<SharedPreferences>()),
+  );
+
+
+  sl.registerLazySingleton<ProfileRepository>(
+        () => ProfileRepositoryImpl(sl<ProfileLocalDataSource>(), sl<NetworkInfo>()),
+  );
+
+  sl.registerLazySingleton<GetProfileUseCase>(() => GetProfileUseCase(sl()));
+  sl.registerLazySingleton<SaveProfileUseCase>(() => SaveProfileUseCase(sl()));
+
+  sl.registerLazySingleton<ActivityRepository>(() => ActivityRepositoryFake());
+  sl.registerLazySingleton<SaveActivityUseCase>(() => SaveActivityUseCase(sl()));
+
 }

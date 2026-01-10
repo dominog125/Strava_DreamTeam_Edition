@@ -5,10 +5,16 @@ import 'package:hive/hive.dart';
 
 import '../network/network_info.dart';
 
-// AUTH
-import '../../features/auth/data/repositories/auth_repository_fake.dart';
+// AUTH (pod API: remote + local + repo impl)
+import '../../features/auth/data/models/auth_tokens_model.dart';
+import '../../features/auth/data/datasources/auth_local_data_source.dart';
+import '../../features/auth/data/datasources/auth_remote_data_source.dart';
+import '../../features/auth/data/datasources/auth_remote_fake_data_source.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/login_usecase.dart';
+import '../../features/auth/domain/usecases/logout_usecase.dart';
+import '../../features/auth/domain/usecases/get_cached_tokens_usecase.dart';
 
 // PROFILE
 import '../../features/profile/data/datasources/profile_local_data_source.dart';
@@ -35,10 +41,32 @@ void setupInjector(SharedPreferences prefs) {
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 
   // AUTH (fake)
-  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryFake());
-  sl.registerLazySingleton<LoginUseCase>(() => LoginUseCase(sl()));
+  sl.registerLazySingleton<Box<AuthTokensModel>>(
+        () => Hive.box<AuthTokensModel>('auth_tokens'),
+    instanceName: 'authTokensBox',
+  );
 
-  // PROFILE (local)
+  sl.registerLazySingleton<AuthLocalDataSource>(
+        () => AuthLocalDataSourceImpl(
+      sl<Box<AuthTokensModel>>(instanceName: 'authTokensBox'),
+    ),
+  );
+
+
+  sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteFakeDataSource());
+
+
+  // sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteApiDataSource(sl()));
+
+  sl.registerLazySingleton<AuthRepository>(
+        () => AuthRepositoryImpl(sl<AuthRemoteDataSource>(), sl<AuthLocalDataSource>()),
+  );
+
+  sl.registerLazySingleton(() => LoginUseCase(sl()));
+  sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => GetCachedTokensUseCase(sl()));
+
+  // ---------- PROFILE (local) ----------
   sl.registerLazySingleton<ProfileLocalDataSource>(
         () => ProfileLocalDataSourceImpl(sl<SharedPreferences>()),
   );
@@ -48,7 +76,7 @@ void setupInjector(SharedPreferences prefs) {
   sl.registerLazySingleton<GetProfileUseCase>(() => GetProfileUseCase(sl()));
   sl.registerLazySingleton<SaveProfileUseCase>(() => SaveProfileUseCase(sl()));
 
-  // ACTIVITY (Hive)  ✅ tu był problem
+  // ---------- ACTIVITY (Hive) ----------
   sl.registerLazySingleton<Box<ActivityModel>>(
         () => Hive.box<ActivityModel>('activities'),
     instanceName: 'activitiesBox',
@@ -68,3 +96,4 @@ void setupInjector(SharedPreferences prefs) {
         () => SaveActivityUseCase(sl<ActivityRepository>()),
   );
 }
+

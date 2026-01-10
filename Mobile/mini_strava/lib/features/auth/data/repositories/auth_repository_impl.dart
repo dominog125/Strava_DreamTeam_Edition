@@ -1,15 +1,30 @@
 import '../../domain/entities/auth_tokens.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../datasources/auth_local_data_source.dart';
 import '../datasources/auth_remote_data_source.dart';
-// API HERE: repo impl łączy remote datasource i domain
-// TODO(API): Podmieniamy Fake na Impl w injectorze
+import '../models/auth_tokens_model.dart';
+
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remote;
-  AuthRepositoryImpl(this.remote);
-  // TODO(API): w środku tylko delegacja do remote + mapowanie modeli
+  final AuthLocalDataSource local;
+
+  AuthRepositoryImpl(this.remote, this.local);
 
   @override
-  Future<AuthTokens> login({required String email, required String password}) {
-    return remote.login(email, password);
+  Future<AuthTokens> login({
+    required String email,
+    required String password,
+  }) async {
+    final tokens = await remote.login(email: email, password: password);
+    await local.saveTokens(AuthTokensModel.fromEntity(tokens));
+    return tokens;
+  }
+
+  @override
+  Future<void> logout() => local.clear();
+
+  @override
+  Future<AuthTokens?> getCachedTokens() async {
+    return local.getTokens()?.toEntity();
   }
 }

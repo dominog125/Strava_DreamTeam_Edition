@@ -1,7 +1,7 @@
-import '../../domain/repositories/auth_repository.dart';
 import '../../domain/entities/auth_tokens.dart';
+import 'auth_remote_data_source.dart';
 
-abstract class AuthRepositoryFake implements AuthRepository {
+class AuthRemoteFakeDataSource implements AuthRemoteDataSource {
   @override
   Future<AuthTokens> login({
     required String email,
@@ -9,11 +9,7 @@ abstract class AuthRepositoryFake implements AuthRepository {
   }) async {
     final e = email.trim();
 
-    final ok =
-        (e == 'admin@example.com' || e == 'admin') &&
-            password == '12345678';
-
-    if (ok) {
+    if (e == 'admin@example.com' && password == '12345678') {
       return const AuthTokens(
         accessToken: 'fake_access',
         refreshToken: 'fake_refresh',
@@ -23,4 +19,3 @@ abstract class AuthRepositoryFake implements AuthRepository {
     throw Exception('Invalid credentials');
   }
 }
-

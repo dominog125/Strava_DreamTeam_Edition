@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
+
+import 'features/auth/presentation/screens/auth_gate.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/reset_password_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/activity/presentation/screens/activity_screen.dart';
-
-
 
 class MiniStravaApp extends StatelessWidget {
   const MiniStravaApp({super.key});
@@ -19,9 +19,9 @@ class MiniStravaApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-
-      initialRoute: '/login',
+      initialRoute: '/',
       routes: {
+        '/': (context) => const AuthGate(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/reset': (context) => const ResetPasswordScreen(),
@@ -31,4 +31,3 @@ class MiniStravaApp extends StatelessWidget {
     );
   }
 }
-

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../../../core/di/injector.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/usecases/get_profile_usecase.dart';
@@ -16,34 +15,36 @@ class ProfileController extends ChangeNotifier {
   DateTime? birthDate;
   Gender gender = Gender.notSet;
 
-  String? avatarPathOrUrl; // TODO(API/LOCAL): picker + upload
-
-  final GetProfileUseCase _get = sl<GetProfileUseCase>();
-  final SaveProfileUseCase _save = sl<SaveProfileUseCase>();
+  final GetProfileUseCase _getProfile = sl<GetProfileUseCase>();
+  final SaveProfileUseCase _saveProfile = sl<SaveProfileUseCase>();
 
   bool _loading = false;
   bool get isLoading => _loading;
 
+  // ===================== LOAD =====================
+
   Future<void> load() async {
     _setLoading(true);
     try {
-      final profile = await _get();
+      final profile = await _getProfile();
       if (profile != null) {
         firstName.text = profile.firstName;
         lastName.text = profile.lastName;
-        heightCm.text = profile.heightCm.toString();
-        weightKg.text = profile.weightKg.toString();
+        heightCm.text = profile.heightCm?.toString() ?? '';
+        weightKg.text = profile.weightKg?.toString() ?? '';
         birthDate = profile.birthDate;
         gender = profile.gender;
-        avatarPathOrUrl = profile.avatarPathOrUrl;
       }
     } finally {
       _setLoading(false);
     }
   }
 
+  // ===================== SAVE =====================
+
   Future<void> save(BuildContext context) async {
     if (!(formKey.currentState?.validate() ?? false)) return;
+
     if (birthDate == null) {
       _snack(context, 'Wybierz datę urodzenia');
       return;
@@ -52,18 +53,21 @@ class ProfileController extends ChangeNotifier {
     final profile = UserProfile(
       firstName: firstName.text.trim(),
       lastName: lastName.text.trim(),
-      birthDate: birthDate!,
+      birthDate: birthDate,
       gender: gender,
-      heightCm: int.parse(heightCm.text.trim()),
-      weightKg: double.parse(weightKg.text.trim().replaceAll(',', '.')),
-      avatarPathOrUrl: avatarPathOrUrl,
+      heightCm: int.tryParse(heightCm.text.trim()),
+      weightKg:
+      double.tryParse(weightKg.text.trim().replaceAll(',', '.')),
     );
 
     _setLoading(true);
     try {
-      await _save(profile);
+      await _saveProfile(profile);
+
       if (!context.mounted) return;
+
       _snack(context, 'Zapisano profil ✅');
+      Navigator.pop(context);
     } catch (_) {
       if (!context.mounted) return;
       _snack(context, 'Błąd zapisu profilu');
@@ -71,6 +75,8 @@ class ProfileController extends ChangeNotifier {
       _setLoading(false);
     }
   }
+
+  // ===================== SETTERS =====================
 
   void setBirthDate(DateTime d) {
     birthDate = d;
@@ -82,6 +88,8 @@ class ProfileController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ===================== VALIDATION =====================
+
   String? validateName(String? v, String fieldName) {
     final s = (v ?? '').trim();
     if (s.isEmpty) return 'Wpisz $fieldName';
@@ -90,20 +98,22 @@ class ProfileController extends ChangeNotifier {
   }
 
   String? validateHeight(String? v) {
-    final s = (v ?? '').trim();
-    final n = int.tryParse(s);
+    final n = int.tryParse((v ?? '').trim());
     if (n == null) return 'Wpisz wzrost (cm)';
     if (n < 80 || n > 250) return 'Podaj realistyczny wzrost';
     return null;
   }
 
   String? validateWeight(String? v) {
-    final s = (v ?? '').trim().replaceAll(',', '.');
-    final n = double.tryParse(s);
+    final n = double.tryParse(
+      (v ?? '').trim().replaceAll(',', '.'),
+    );
     if (n == null) return 'Wpisz wagę (kg)';
     if (n < 20 || n > 300) return 'Podaj realistyczną wagę';
     return null;
   }
+
+  // ===================== UTILS =====================
 
   void disposeControllers() {
     firstName.dispose();
@@ -118,6 +128,7 @@ class ProfileController extends ChangeNotifier {
   }
 
   void _snack(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
   }
 }

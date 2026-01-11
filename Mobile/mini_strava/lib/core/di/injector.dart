@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive/hive.dart';
+import '../auth/auth_session.dart';
 
 import '../network/network_info.dart';
 
@@ -39,6 +40,7 @@ void setupInjector(SharedPreferences prefs) {
   sl.registerLazySingleton<SharedPreferences>(() => prefs);
   sl.registerLazySingleton(() => Connectivity());
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+  sl.registerSingleton<AuthSession>(AuthSession(prefs));
 
   // AUTH (fake)
   sl.registerLazySingleton<Box<AuthTokensModel>>(

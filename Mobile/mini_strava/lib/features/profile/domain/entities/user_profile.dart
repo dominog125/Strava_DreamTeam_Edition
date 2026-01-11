@@ -3,10 +3,10 @@ enum Gender { male, female, other, notSet }
 class UserProfile {
   final String firstName;
   final String lastName;
-  final DateTime birthDate;
+  final DateTime? birthDate;
   final Gender gender;
-  final int heightCm;
-  final double weightKg;
+  final int? heightCm;
+  final double? weightKg;
 
 
   final String? avatarPathOrUrl;

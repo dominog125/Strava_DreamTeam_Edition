@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../../../../core/di/injector.dart';
+import '../../../../core/navigation/app_routes.dart';
+import '../../../../core/auth/auth_session.dart';
 import '../../domain/usecases/login_usecase.dart';
 
 class LoginController extends ChangeNotifier {
@@ -9,6 +10,7 @@ class LoginController extends ChangeNotifier {
   final passwordController = TextEditingController();
 
   final LoginUseCase _loginUseCase = sl<LoginUseCase>();
+  final AuthSession _session = sl<AuthSession>();
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -21,15 +23,12 @@ class LoginController extends ChangeNotifier {
   String? validateEmail(String? v) {
     final s = (v ?? '').trim();
     if (s.isEmpty) return 'Wpisz email';
-
     if (!s.contains('@') && s != 'admin') return 'Niepoprawny email';
     return null;
   }
 
   String? validatePassword(String? v) {
-    final s = v ?? '';
-    if (s.isEmpty) return 'Wpisz hasło';
-
+    if ((v ?? '').isEmpty) return 'Wpisz hasło';
     return null;
   }
 
@@ -40,26 +39,21 @@ class LoginController extends ChangeNotifier {
     _setLoading(true);
 
     try {
-      debugPrint('LOGIN SUBMIT: ${emailController.text.trim()}');
-
       await _loginUseCase(
         email: emailController.text.trim(),
         password: passwordController.text,
       );
 
+      await _session.login();
+
       if (!context.mounted) return;
-      debugPrint('LOGIN OK -> navigating to /profile');
 
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
-          '/profile',
-              (route) => false,
-        );
-      });
+      Navigator.of(context, rootNavigator: true)
+          .pushNamedAndRemoveUntil(
+        AppRoutes.profile,
+            (_) => false,
+      );
     } catch (e) {
-      debugPrint('LOGIN ERROR: $e');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Błędny login lub hasło')),
@@ -74,4 +68,3 @@ class LoginController extends ChangeNotifier {
     notifyListeners();
   }
 }
-

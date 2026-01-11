@@ -42,7 +42,7 @@ class UserProfileModel extends UserProfile {
     return {
       'firstName': firstName,
       'lastName': lastName,
-      'birthDate': birthDate.toIso8601String(),
+      'birthDate': birthDate?.toIso8601String(),
       'gender': genderStr,
       'heightCm': heightCm,
       'weightKg': weightKg,

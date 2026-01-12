@@ -41,6 +41,7 @@ import 'package:mini_strava/features/activity_history/domain/usecases/get_activi
 import 'package:mini_strava/features/activity_history/domain/usecases/get_activity_details_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/add_manual_activity_usecase.dart';
 import 'package:mini_strava/features/activity_history/data/datasources/activity_history_remote_fake_data_source.dart';
+import 'package:mini_strava/features/activity_history/domain/usecases/get_user_stats_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -134,6 +135,8 @@ void setupInjector(SharedPreferences prefs) {
   sl.registerLazySingleton(() => GetActivityHistoryUseCase(sl<ActivityHistoryRepository>()));
   sl.registerLazySingleton(() => GetActivityDetailsUseCase(sl<ActivityHistoryRepository>()));
   sl.registerLazySingleton(() => AddManualActivityUseCase(sl<ActivityHistoryRepositoryImpl>()));
+  sl.registerLazySingleton(() => GetUserStatsUseCase(sl<GetActivityHistoryUseCase>()));
+
 
 
   sl.registerLazySingleton<ActivityHistoryRemoteFakeDataSource>(

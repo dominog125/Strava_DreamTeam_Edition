@@ -171,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPressed: () async {
                   await Navigator.pushNamed(context, AppRoutes.activityHistory);
                   if (!mounted) return;
-                  await _loadStats(); 
+                  await _loadStats();
                 },
                 icon: const Icon(Icons.history),
                 label: const Text('Historia aktywności'),

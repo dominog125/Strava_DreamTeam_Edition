@@ -3,8 +3,8 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/di/injector.dart';
 import '../../../../core/navigation/app_routes.dart';
-
 import '../../../auth/domain/usecases/logout_usecase.dart';
+
 import '../../domain/entities/user_profile.dart';
 import '../controller/profile_controller.dart';
 
@@ -24,7 +24,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     c = ProfileController();
     _logout = sl<LogoutUseCase>();
-
     c.addListener(_onChanged);
     c.load();
   }
@@ -65,8 +64,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () async {
               await _logout();
               if (!context.mounted) return;
-
-              Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+              Navigator.of(context, rootNavigator: true)
+                  .pushNamedAndRemoveUntil(
                 AppRoutes.login,
                     (_) => false,
               );
@@ -97,13 +96,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _InfoRow(label: 'Płeć', value: _genderLabel(c.gender)),
             _InfoRow(label: 'Wzrost', value: heightText),
             _InfoRow(label: 'Waga', value: weightText),
+
             const SizedBox(height: 32),
+
+            // 🔘 Moje aktywności
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.activity),
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.activity),
                 icon: const Icon(Icons.directions_run),
-                label: const Text('Moje aktywności'),
+                label: const Text('Rozpocznij aktywność'),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // 🔘 Historia aktywności (NOWY PRZYCISK)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.activityHistory,
+                ),
+                icon: const Icon(Icons.history),
+                label: const Text('Historia aktywności'),
               ),
             ),
           ],

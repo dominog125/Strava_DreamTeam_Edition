@@ -5,4 +5,5 @@ abstract class AppRoutes {
   static const profile = '/profile';
   static const profileSettings = '/profile-settings';
   static const activity = '/activity';
+  static const activityHistory = '/activity-history';
 }

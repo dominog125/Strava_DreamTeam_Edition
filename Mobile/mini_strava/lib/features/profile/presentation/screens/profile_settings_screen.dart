@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../controller/profile_controller.dart';
@@ -8,12 +11,10 @@ class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
 
   @override
-  State<ProfileSettingsScreen> createState() =>
-      _ProfileSettingsScreenState();
+  State<ProfileSettingsScreen> createState() => _ProfileSettingsScreenState();
 }
 
-class _ProfileSettingsScreenState
-    extends State<ProfileSettingsScreen> {
+class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   late final ProfileController c;
 
   @override
@@ -33,11 +34,41 @@ class _ProfileSettingsScreenState
     super.dispose();
   }
 
+  Future<void> _pickAvatar() async {
+    try {
+      final picker = ImagePicker();
+      final xfile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (xfile == null) return;
+
+      // ✅ zapisujemy ścieżkę avatara w profilu
+      setState(() {
+        c.avatarPathOrUrl = xfile.path; // <- upewnij się, że to pole istnieje w controllerze
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się wybrać avatara: $e')),
+      );
+    }
+  }
+
+  void _clearAvatar() {
+    setState(() {
+      c.avatarPathOrUrl = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateText = c.birthDate == null
         ? 'Wybierz datę'
         : DateFormat('yyyy-MM-dd').format(c.birthDate!);
+
+    final avatar = (c.avatarPathOrUrl ?? '').trim();
+    final hasLocalAvatar = avatar.isNotEmpty && !avatar.startsWith('http');
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
@@ -47,19 +78,60 @@ class _ProfileSettingsScreenState
           key: c.formKey,
           child: ListView(
             children: [
+              // ✅ AVATAR
+              Card(
+                elevation: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 34,
+                        backgroundImage: hasLocalAvatar ? FileImage(File(avatar)) : null,
+                        child: !hasLocalAvatar
+                            ? const Icon(Icons.person, size: 32)
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: c.isLoading ? null : _pickAvatar,
+                              icon: const Icon(Icons.photo_library_outlined),
+                              label: Text(hasLocalAvatar ? 'Zmień avatar' : 'Wybierz avatar'),
+                            ),
+                            const SizedBox(height: 6),
+                            if ((c.avatarPathOrUrl ?? '').trim().isNotEmpty)
+                              TextButton.icon(
+                                onPressed: c.isLoading ? null : _clearAvatar,
+                                icon: const Icon(Icons.delete_outline),
+                                label: const Text('Usuń avatar'),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
               TextFormField(
                 controller: c.firstName,
                 decoration: const InputDecoration(labelText: 'Imię'),
                 validator: (v) => c.validateName(v, 'imię'),
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: c.lastName,
                 decoration: const InputDecoration(labelText: 'Nazwisko'),
                 validator: (v) => c.validateName(v, 'nazwisko'),
               ),
               const SizedBox(height: 12),
-
 
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -79,9 +151,7 @@ class _ProfileSettingsScreenState
                   if (picked != null) c.setBirthDate(picked);
                 },
               ),
-
               const SizedBox(height: 6),
-
 
               DropdownButtonFormField<Gender>(
                 initialValue: c.gender,
@@ -94,7 +164,6 @@ class _ProfileSettingsScreenState
                 ],
                 onChanged: c.isLoading ? null : (g) => c.setGender(g ?? Gender.notSet),
               ),
-
               const SizedBox(height: 12),
 
               TextFormField(
@@ -104,13 +173,13 @@ class _ProfileSettingsScreenState
                 validator: c.validateHeight,
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: c.weightKg,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Waga (kg)'),
                 validator: c.validateWeight,
               ),
-
               const SizedBox(height: 18),
 
               SizedBox(
@@ -125,12 +194,6 @@ class _ProfileSettingsScreenState
                   )
                       : const Text('Zapisz'),
                 ),
-              ),
-
-              const SizedBox(height: 8),
-              Text(
-                'Avatar: TODO (picker + upload/sync)',
-                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),

@@ -6,7 +6,7 @@ class ProfileRepositoryFake implements ProfileRepository {
 
   @override
   Future<UserProfile?> getProfile() async {
-    // symulacja IO
+
     await Future.delayed(const Duration(milliseconds: 150));
     return _cached;
   }

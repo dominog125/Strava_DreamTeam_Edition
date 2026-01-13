@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -8,7 +9,6 @@ import 'package:mini_strava/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/get_user_stats_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/entities/user_stats.dart';
 import 'package:mini_strava/features/profile/domain/entities/user_profile.dart';
-
 import 'package:mini_strava/features/activity_history/data/datasources/activity_history_local_data_source.dart';
 
 import '../controller/profile_controller.dart';
@@ -23,9 +23,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileController c;
   late final LogoutUseCase _logout;
   late final GetUserStatsUseCase _getStats;
-
-
   late final ActivityHistoryLocalDataSource _historyLocal;
+
   StreamSubscription? _boxSub;
   Timer? _statsDebounce;
 
@@ -38,13 +37,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     c = ProfileController();
     _logout = sl<LogoutUseCase>();
     _getStats = sl<GetUserStatsUseCase>();
-
     _historyLocal = sl<ActivityHistoryLocalDataSource>();
 
     c.addListener(_onChanged);
     c.load();
     _loadStats();
-
 
     _boxSub = _historyLocal.box.watch().listen((_) {
       _statsDebounce?.cancel();
@@ -96,6 +93,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final totalDist = _stats?.totalDistanceKm ?? 0.0;
     final avgSpeed = _stats?.avgSpeedKmH ?? 0.0;
 
+    final avatar = (c.avatarPathOrUrl ?? '').trim();
+    final hasAvatar = avatar.isNotEmpty;
+    final isUrl = avatar.startsWith('http');
+
+    ImageProvider? avatarProvider;
+    if (hasAvatar) {
+      avatarProvider = isUrl ? NetworkImage(avatar) : FileImage(File(avatar));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil'),
@@ -130,7 +136,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 24),
-            const CircleAvatar(radius: 48, child: Icon(Icons.person, size: 48)),
+
+
+            CircleAvatar(
+              radius: 48,
+              backgroundImage: avatarProvider,
+              child: avatarProvider == null
+                  ? const Icon(Icons.person, size: 48)
+                  : null,
+            ),
+
             const SizedBox(height: 16),
             Text(
               fullName.isEmpty ? 'Brak danych' : fullName,
@@ -149,10 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _StatTile(label: 'Treningi', value: workouts.toString()),
                   _StatTile(label: 'Dystans', value: '${totalDist.toStringAsFixed(1)} km'),
-                  _StatTile(
-                    label: 'Śr. prędkość',
-                    value: '${avgSpeed.toStringAsFixed(1)} km/h',
-                  ),
+                  _StatTile(label: 'Śr. prędkość', value: '${avgSpeed.toStringAsFixed(1)} km/h'),
                 ],
               ),
             const SizedBox(height: 28),

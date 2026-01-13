@@ -15,6 +15,9 @@ class ProfileController extends ChangeNotifier {
   DateTime? birthDate;
   Gender gender = Gender.notSet;
 
+
+  String? avatarPathOrUrl;
+
   final GetProfileUseCase _getProfile = sl<GetProfileUseCase>();
   final SaveProfileUseCase _saveProfile = sl<SaveProfileUseCase>();
 
@@ -22,7 +25,6 @@ class ProfileController extends ChangeNotifier {
   bool get isLoading => _loading;
 
   // ===================== LOAD =====================
-
   Future<void> load() async {
     _setLoading(true);
     try {
@@ -34,6 +36,11 @@ class ProfileController extends ChangeNotifier {
         weightKg.text = profile.weightKg?.toString() ?? '';
         birthDate = profile.birthDate;
         gender = profile.gender;
+
+
+        avatarPathOrUrl = (profile.avatarPathOrUrl ?? '').trim().isEmpty
+            ? null
+            : profile.avatarPathOrUrl;
       }
     } finally {
       _setLoading(false);
@@ -41,7 +48,6 @@ class ProfileController extends ChangeNotifier {
   }
 
   // ===================== SAVE =====================
-
   Future<void> save(BuildContext context) async {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
@@ -56,16 +62,15 @@ class ProfileController extends ChangeNotifier {
       birthDate: birthDate,
       gender: gender,
       heightCm: int.tryParse(heightCm.text.trim()),
-      weightKg:
-      double.tryParse(weightKg.text.trim().replaceAll(',', '.')),
+      weightKg: double.tryParse(weightKg.text.trim().replaceAll(',', '.')),
+
+      avatarPathOrUrl: (avatarPathOrUrl ?? '').trim().isEmpty ? null : avatarPathOrUrl,
     );
 
     _setLoading(true);
     try {
       await _saveProfile(profile);
-
       if (!context.mounted) return;
-
       _snack(context, 'Zapisano profil ✅');
       Navigator.pop(context);
     } catch (_) {
@@ -77,7 +82,6 @@ class ProfileController extends ChangeNotifier {
   }
 
   // ===================== SETTERS =====================
-
   void setBirthDate(DateTime d) {
     birthDate = d;
     notifyListeners();
@@ -88,8 +92,13 @@ class ProfileController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===================== VALIDATION =====================
 
+  void setAvatar(String? pathOrUrl) {
+    avatarPathOrUrl = (pathOrUrl ?? '').trim().isEmpty ? null : pathOrUrl;
+    notifyListeners();
+  }
+
+  // ===================== VALIDATION =====================
   String? validateName(String? v, String fieldName) {
     final s = (v ?? '').trim();
     if (s.isEmpty) return 'Wpisz $fieldName';
@@ -105,16 +114,13 @@ class ProfileController extends ChangeNotifier {
   }
 
   String? validateWeight(String? v) {
-    final n = double.tryParse(
-      (v ?? '').trim().replaceAll(',', '.'),
-    );
+    final n = double.tryParse((v ?? '').trim().replaceAll(',', '.'));
     if (n == null) return 'Wpisz wagę (kg)';
     if (n < 20 || n > 300) return 'Podaj realistyczną wagę';
     return null;
   }
 
   // ===================== UTILS =====================
-
   void disposeControllers() {
     firstName.dispose();
     lastName.dispose();
@@ -128,7 +134,7 @@ class ProfileController extends ChangeNotifier {
   }
 
   void _snack(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 }
+

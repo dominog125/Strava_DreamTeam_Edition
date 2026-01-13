@@ -20,14 +20,22 @@ class UserProfileModel extends UserProfile {
       _ => Gender.notSet,
     };
 
+    final birthRaw = json['birthDate'] as String?;
+    final birthDate = (birthRaw == null || birthRaw.trim().isEmpty)
+        ? null
+        : DateTime.tryParse(birthRaw);
+
     return UserProfileModel(
       firstName: (json['firstName'] as String?) ?? '',
       lastName: (json['lastName'] as String?) ?? '',
-      birthDate: DateTime.parse(json['birthDate'] as String),
+      birthDate: birthDate,
       gender: gender,
-      heightCm: (json['heightCm'] as num).toInt(),
-      weightKg: (json['weightKg'] as num).toDouble(),
-      avatarPathOrUrl: json['avatarPathOrUrl'] as String?,
+      heightCm: (json['heightCm'] as num?)?.toInt() ?? 0,
+      weightKg: (json['weightKg'] as num?)?.toDouble() ?? 0.0,
+
+      avatarPathOrUrl: (json['avatarPathOrUrl'] as String?)?.trim().isEmpty == true
+          ? null
+          : json['avatarPathOrUrl'] as String?,
     );
   }
 

@@ -167,7 +167,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
             if (meters >= 0.5 && meters <= 120) {
               _distanceKm += meters / 1000.0;
 
-              
               final last = _trackPoints.isEmpty ? null : _trackPoints.last;
               if (last == null) {
                 _trackPoints.add(ll);

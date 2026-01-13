@@ -1,19 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'package:mini_strava/core/di/injector.dart';
 import 'package:mini_strava/core/navigation/app_routes.dart';
-
 import 'package:mini_strava/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/get_user_stats_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/entities/user_stats.dart';
-
 import 'package:mini_strava/features/profile/domain/entities/user_profile.dart';
+
+import 'package:mini_strava/features/activity_history/data/datasources/activity_history_local_data_source.dart';
+
 import '../controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
-
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -22,6 +23,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileController c;
   late final LogoutUseCase _logout;
   late final GetUserStatsUseCase _getStats;
+
+
+  late final ActivityHistoryLocalDataSource _historyLocal;
+  StreamSubscription? _boxSub;
+  Timer? _statsDebounce;
 
   UserStats? _stats;
   bool _statsLoading = true;
@@ -33,9 +39,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _logout = sl<LogoutUseCase>();
     _getStats = sl<GetUserStatsUseCase>();
 
+    _historyLocal = sl<ActivityHistoryLocalDataSource>();
+
     c.addListener(_onChanged);
     c.load();
     _loadStats();
+
+
+    _boxSub = _historyLocal.box.watch().listen((_) {
+      _statsDebounce?.cancel();
+      _statsDebounce = Timer(const Duration(milliseconds: 200), () {
+        if (!mounted) return;
+        _loadStats();
+      });
+    });
   }
 
   void _onChanged() => setState(() {});
@@ -60,6 +77,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
+    _statsDebounce?.cancel();
+    _boxSub?.cancel();
     c.removeListener(_onChanged);
     c.disposeControllers();
     super.dispose();
@@ -111,20 +130,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 24),
-            const CircleAvatar(
-              radius: 48,
-              child: Icon(Icons.person, size: 48),
-            ),
+            const CircleAvatar(radius: 48, child: Icon(Icons.person, size: 48)),
             const SizedBox(height: 16),
             Text(
               fullName.isEmpty ? 'Brak danych' : fullName,
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 20),
-
-
             if (_statsLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
@@ -135,27 +148,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _StatTile(label: 'Treningi', value: workouts.toString()),
-                  _StatTile(
-                    label: 'Dystans',
-                    value: '${totalDist.toStringAsFixed(1)} km',
-                  ),
+                  _StatTile(label: 'Dystans', value: '${totalDist.toStringAsFixed(1)} km'),
                   _StatTile(
                     label: 'Śr. prędkość',
                     value: '${avgSpeed.toStringAsFixed(1)} km/h',
                   ),
                 ],
               ),
-
             const SizedBox(height: 28),
-
-
             _InfoRow(label: 'Data urodzenia', value: birthDateText),
             _InfoRow(label: 'Płeć', value: _genderLabel(c.gender)),
             _InfoRow(label: 'Wzrost', value: heightText),
             _InfoRow(label: 'Waga', value: weightText),
-
             const SizedBox(height: 32),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

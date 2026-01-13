@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mini_strava/core/di/injector.dart';
-
 import 'package:mini_strava/features/activity_history/domain/entities/activity_summary.dart';
 import 'package:mini_strava/features/activity_history/domain/entities/activity_type.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/get_activity_history_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/add_manual_activity_usecase.dart';
-
-// ✅ NOWE: szczegóły
 import 'package:mini_strava/features/activity_history/presentation/screens/activity_details_screen.dart';
 
 class ActivityHistoryScreen extends StatefulWidget {
@@ -17,13 +14,24 @@ class ActivityHistoryScreen extends StatefulWidget {
   State<ActivityHistoryScreen> createState() => _ActivityHistoryScreenState();
 }
 
+
+
+enum _SortField { date, distance }
+enum _SortDir { desc, asc }
+
 class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
   late final GetActivityHistoryUseCase _getHistory;
   late final AddManualActivityUseCase _addManual;
 
   bool _loading = true;
   String? _error;
+
   List<ActivitySummary> _items = const [];
+
+
+  ActivityType? _typeFilter;
+  _SortField _sortField = _SortField.date;
+  _SortDir _sortDir = _SortDir.desc;
 
   @override
   void initState() {
@@ -79,14 +87,51 @@ class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
       MaterialPageRoute(builder: (_) => ActivityDetailsScreen(id: id)),
     );
 
-    // ✅ jeśli wróciło true (zapisano zmiany) → odśwież listę
     if (changed == true && mounted) {
       await _load();
     }
   }
 
+  List<ActivitySummary> _applyFilterAndSort(List<ActivitySummary> input) {
+    Iterable<ActivitySummary> out = input;
+
+
+    if (_typeFilter != null) {
+      out = out.where((a) => a.type == _typeFilter);
+    }
+
+    final list = out.toList();
+
+
+    int cmp(ActivitySummary a, ActivitySummary b) {
+      int base;
+      switch (_sortField) {
+        case _SortField.date:
+          base = a.date.compareTo(b.date);
+          break;
+        case _SortField.distance:
+          base = a.distanceKm.compareTo(b.distanceKm);
+          break;
+      }
+      return _sortDir == _SortDir.asc ? base : -base;
+    }
+
+    list.sort(cmp);
+    return list;
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _typeFilter = null;
+      _sortField = _SortField.date;
+      _sortDir = _SortDir.desc;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final visible = _applyFilterAndSort(_items);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Historia aktywności')),
       floatingActionButton: FloatingActionButton.extended(
@@ -115,22 +160,143 @@ class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
       )
           : RefreshIndicator(
         onRefresh: _load,
-        child: ListView.separated(
+        child: ListView(
           padding: const EdgeInsets.all(16),
-          itemCount: _items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final item = _items[index];
-            return _ActivityCard(
-              activity: item,
-              onTap: () => _openDetails(item.id),
-            );
-          },
+          children: [
+            _FiltersBar(
+              typeFilter: _typeFilter,
+              sortField: _sortField,
+              sortDir: _sortDir,
+              onTypeChanged: (v) => setState(() => _typeFilter = v),
+              onSortFieldChanged: (v) => setState(() => _sortField = v),
+              onSortDirChanged: (v) => setState(() => _sortDir = v),
+              onReset: _resetFilters,
+            ),
+            const SizedBox(height: 12),
+            if (visible.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 24),
+                child: Center(child: Text('Brak aktywności dla wybranych filtrów')),
+              )
+            else
+              ...List.generate(visible.length, (index) {
+                final item = visible[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _ActivityCard(
+                    activity: item,
+                    onTap: () => _openDetails(item.id),
+                  ),
+                );
+              }),
+          ],
         ),
       ),
     );
   }
 }
+
+
+class _FiltersBar extends StatelessWidget {
+  final ActivityType? typeFilter;
+  final _SortField sortField;
+  final _SortDir sortDir;
+
+  final ValueChanged<ActivityType?> onTypeChanged;
+  final ValueChanged<_SortField> onSortFieldChanged;
+  final ValueChanged<_SortDir> onSortDirChanged;
+  final VoidCallback onReset;
+
+  const _FiltersBar({
+    required this.typeFilter,
+    required this.sortField,
+    required this.sortDir,
+    required this.onTypeChanged,
+    required this.onSortFieldChanged,
+    required this.onSortDirChanged,
+    required this.onReset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<ActivityType?>(
+                    initialValue: typeFilter,
+                    decoration: const InputDecoration(
+                      labelText: 'Filtr: typ',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('Wszystkie')),
+                      DropdownMenuItem(value: ActivityType.run, child: Text('Bieg')),
+                      DropdownMenuItem(value: ActivityType.bike, child: Text('Rower')),
+                      DropdownMenuItem(value: ActivityType.walk, child: Text('Spacer')),
+                      DropdownMenuItem(value: ActivityType.unknown, child: Text('Nie podano')),
+                    ],
+                    onChanged: onTypeChanged,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                TextButton.icon(
+                  onPressed: onReset,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reset'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<_SortField>(
+                    initialValue: sortField,
+                    decoration: const InputDecoration(
+                      labelText: 'Sortuj po',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: _SortField.date, child: Text('Dacie')),
+                      DropdownMenuItem(value: _SortField.distance, child: Text('Dystansie')),
+                    ],
+                    onChanged: (v) => onSortFieldChanged(v ?? _SortField.date),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<_SortDir>(
+                    initialValue: sortDir,
+                    decoration: const InputDecoration(
+                      labelText: 'Kierunek',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: _SortDir.desc, child: Text('Malejąco')),
+                      DropdownMenuItem(value: _SortDir.asc, child: Text('Rosnąco')),
+                    ],
+                    onChanged: (v) => onSortDirChanged(v ?? _SortDir.desc),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
 
 class _ActivityCard extends StatelessWidget {
   final ActivitySummary activity;
@@ -167,10 +333,7 @@ class _ActivityCard extends StatelessWidget {
               ),
               if (title.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
               ],
               const SizedBox(height: 12),
               Row(
@@ -258,7 +421,7 @@ String _formatDuration(Duration d) {
   return h > 0 ? '${h}h ${m}m' : '${m}m ${s}s';
 }
 
-/* ---------------- Dialog + input ---------------- */
+
 
 class _ManualActivityInput {
   final DateTime date;
@@ -283,7 +446,6 @@ class _AddActivityDialog extends StatefulWidget {
 
 class _AddActivityDialogState extends State<_AddActivityDialog> {
   final _formKey = GlobalKey<FormState>();
-
   DateTime _date = DateTime.now();
   ActivityType _type = ActivityType.run;
 
@@ -331,6 +493,7 @@ class _AddActivityDialogState extends State<_AddActivityDialog> {
                   DropdownMenuItem(value: ActivityType.run, child: Text('Bieg')),
                   DropdownMenuItem(value: ActivityType.bike, child: Text('Rower')),
                   DropdownMenuItem(value: ActivityType.walk, child: Text('Spacer')),
+                  DropdownMenuItem(value: ActivityType.unknown, child: Text('Nie podano')),
                 ],
                 onChanged: (v) => setState(() => _type = v ?? ActivityType.run),
               ),
@@ -368,7 +531,6 @@ class _AddActivityDialogState extends State<_AddActivityDialog> {
         ElevatedButton(
           onPressed: () {
             if (!(_formKey.currentState?.validate() ?? false)) return;
-
             Navigator.pop(
               context,
               _ManualActivityInput(

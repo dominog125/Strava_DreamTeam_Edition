@@ -1,6 +1,7 @@
 import '../../domain/entities/activity_details.dart';
 import '../../domain/entities/activity_summary.dart';
 import '../../domain/entities/activity_type.dart';
+import '../../domain/entities/gps_point.dart';
 import '../../domain/repositories/activity_history_repository.dart';
 import '../datasources/activity_history_local_data_source.dart';
 import '../models/activity_history_hive_model.dart';
@@ -20,9 +21,15 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
   Future<ActivityDetails> getById(String id) async {
     final all = await local.getAll();
     final found = all.firstWhere((e) => e.id == id);
+
+    final gps = (found.track ?? const <List<double>>[])
+        .where((p) => p.length >= 2)
+        .map((p) => GpsPoint(lat: p[0], lng: p[1]))
+        .toList();
+
     return ActivityDetails(
       summary: _toSummaryEntity(found),
-      gpsTrack: const [],
+      gpsTrack: gps,
     );
   }
 
@@ -33,8 +40,8 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
     required double distanceKm,
   }) async {
     final minutes = duration.inSeconds / 60.0;
-    final pace = minutes / distanceKm;
-    final speed = distanceKm / (minutes / 60.0);
+    final pace = distanceKm > 0 ? (minutes / distanceKm) : 0.0;
+    final speed = minutes > 0 ? (distanceKm / (minutes / 60.0)) : 0.0;
 
     final nowIso = DateTime.now().toIso8601String();
     final id = DateTime.now().millisecondsSinceEpoch.toString();
@@ -53,15 +60,46 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       title: null,
       note: null,
       photoPath: null,
+      track: null,
     );
 
     await local.upsert(model);
   }
 
-  /// ✅ Aktualizacja meta + typ
-  /// - typ: ustawiasz `type` (opcjonalnie)
-  /// - usuwanie pól: clearTitle/clearNote/clearPhoto
-  /// Uwaga: copyWith w modelu NIE ma pola `type`, więc przy zmianie typu tworzymy nowy model.
+  Future<void> addFromActivity({
+    required DateTime date,
+    required ActivityType type,
+    required Duration duration,
+    required double distanceKm,
+    required List<GpsPoint> track,
+  }) async {
+    final minutes = duration.inSeconds / 60.0;
+    final pace = distanceKm > 0 ? (minutes / distanceKm) : 0.0;
+    final speed = minutes > 0 ? (distanceKm / (minutes / 60.0)) : 0.0;
+
+    final nowIso = DateTime.now().toIso8601String();
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+
+    final model = ActivityHistoryHiveModel(
+      id: id,
+      dateIso: date.toIso8601String(),
+      type: _typeToString(type),
+      durationSeconds: duration.inSeconds,
+      distanceKm: distanceKm,
+      paceMinPerKm: pace,
+      avgSpeedKmH: speed,
+      syncStatus: SyncStatus.pending,
+      createdAtIso: nowIso,
+      updatedAtIso: nowIso,
+      title: null,
+      note: null,
+      photoPath: null,
+      track: track.map((p) => [p.lat, p.lng]).toList(),
+    );
+
+    await local.upsert(model);
+  }
+
   @override
   Future<void> updateMeta({
     required String id,
@@ -72,25 +110,27 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
     bool clearTitle = false,
     bool clearNote = false,
     bool clearPhoto = false,
+    List<List<double>>? track,
+    bool clearTrack = false,
   }) async {
     final all = await local.getAll();
     final found = all.firstWhere((e) => e.id == id);
 
     final nowIso = DateTime.now().toIso8601String();
 
-    // 1) aktualizujemy meta polami, które copyWith obsługuje
     final updated = found.copyWith(
       title: title,
       note: note,
       photoPath: photoPath,
+      track: track,
       clearTitle: clearTitle,
       clearNote: clearNote,
       clearPhoto: clearPhoto,
+      clearTrack: clearTrack,
       updatedAtIso: nowIso,
       syncStatus: SyncStatus.pending,
     );
 
-    // 2) jeśli ma być zmiana typu -> budujemy finalny model ręcznie (bo copyWith nie ma `type`)
     final finalModel = (type == null)
         ? updated
         : ActivityHistoryHiveModel(
@@ -107,6 +147,7 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       title: updated.title,
       note: updated.note,
       photoPath: updated.photoPath,
+      track: updated.track,
     );
 
     await local.upsert(finalModel);
@@ -154,5 +195,3 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
     }
   }
 }
-
-

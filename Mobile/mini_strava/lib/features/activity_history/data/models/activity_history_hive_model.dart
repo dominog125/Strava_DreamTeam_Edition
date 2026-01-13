@@ -20,7 +20,7 @@ class ActivityHistoryHiveModel extends HiveObject {
   @HiveField(1)
   final String dateIso;
 
-  /// "run" | "bike" | "walk"
+
   @HiveField(2)
   final String type;
 
@@ -45,7 +45,6 @@ class ActivityHistoryHiveModel extends HiveObject {
   @HiveField(9)
   final String updatedAtIso;
 
-
   @HiveField(10)
   final String? title;
 
@@ -54,6 +53,10 @@ class ActivityHistoryHiveModel extends HiveObject {
 
   @HiveField(12)
   final String? photoPath;
+
+
+  @HiveField(13)
+  final List<List<double>>? track;
 
   ActivityHistoryHiveModel({
     required this.id,
@@ -69,6 +72,7 @@ class ActivityHistoryHiveModel extends HiveObject {
     this.title,
     this.note,
     this.photoPath,
+    this.track,
   });
 
   ActivityHistoryHiveModel copyWith({
@@ -77,9 +81,11 @@ class ActivityHistoryHiveModel extends HiveObject {
     String? title,
     String? note,
     String? photoPath,
+    List<List<double>>? track,
     bool clearTitle = false,
     bool clearNote = false,
     bool clearPhoto = false,
+    bool clearTrack = false,
   }) {
     return ActivityHistoryHiveModel(
       id: id,
@@ -95,7 +101,9 @@ class ActivityHistoryHiveModel extends HiveObject {
       title: clearTitle ? null : (title ?? this.title),
       note: clearNote ? null : (note ?? this.note),
       photoPath: clearPhoto ? null : (photoPath ?? this.photoPath),
+      track: clearTrack ? null : (track ?? this.track),
     );
   }
 }
+
 

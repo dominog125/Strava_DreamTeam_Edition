@@ -31,13 +31,16 @@ class ActivityHistoryHiveModelAdapter
       title: fields[10] as String?,
       note: fields[11] as String?,
       photoPath: fields[12] as String?,
+      track: (fields[13] as List?)
+          ?.map((dynamic e) => (e as List).cast<double>())
+          .toList(),
     );
   }
 
   @override
   void write(BinaryWriter writer, ActivityHistoryHiveModel obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -63,7 +66,9 @@ class ActivityHistoryHiveModelAdapter
       ..writeByte(11)
       ..write(obj.note)
       ..writeByte(12)
-      ..write(obj.photoPath);
+      ..write(obj.photoPath)
+      ..writeByte(13)
+      ..write(obj.track);
   }
 
   @override

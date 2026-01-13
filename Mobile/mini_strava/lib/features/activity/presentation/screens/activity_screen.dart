@@ -7,7 +7,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../controller/activity_controller.dart';
-import '../../domain/entities/activity.dart';
+import '../../domain/entities/activity.dart' as act;
+
+import '../../../activity_history/domain/entities/gps_point.dart';
 
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
@@ -27,7 +29,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   String? _locError;
   bool _locLoading = true;
 
-  // ---- tracking dystansu / tempa ----
+
   StreamSubscription<geo.Position>? _posSub;
   LatLng? _lastForDistance;
   double _distanceKm = 0.0;
@@ -113,8 +115,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
       });
 
       _safeMoveMap(ll, 16);
-
-
       _syncTrackingWithState();
     } catch (e) {
       if (!mounted) return;
@@ -127,8 +127,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   void _syncTrackingWithState() {
     final isRunning = c.state == ActivityState.running;
-
-
     _followUser = isRunning;
 
     if (isRunning) {
@@ -145,7 +143,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
     if (_current != null) {
       _lastForDistance = _current;
-      // jeśli startujemy i track pusty, dodaj pierwszy punkt
       if (_trackPoints.isEmpty) _trackPoints.add(_current!);
     }
 
@@ -157,26 +154,30 @@ class _ActivityScreenState extends State<ActivityScreen> {
     _posSub = geo.Geolocator.getPositionStream(locationSettings: settings).listen(
           (pos) {
         final ll = LatLng(pos.latitude, pos.longitude);
-
         final prev = _lastForDistance;
         _lastForDistance = ll;
 
         setState(() {
           _current = ll;
 
-
           if (prev != null) {
             final meters = _haversineMeters(prev, ll);
+
+
             if (meters >= 0.5 && meters <= 120) {
               _distanceKm += meters / 1000.0;
 
-
-
-              _trackPoints.add(ll);
+              
+              final last = _trackPoints.isEmpty ? null : _trackPoints.last;
+              if (last == null) {
+                _trackPoints.add(ll);
+              } else {
+                final metersFromLast = _haversineMeters(last, ll);
+                if (metersFromLast >= 2) _trackPoints.add(ll);
+              }
             }
           }
         });
-
 
         _autoFollowIfNeeded(ll);
       },
@@ -201,7 +202,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
     }
 
     final now = DateTime.now();
-    if (!force && now.difference(_lastAutoMove).inMilliseconds < 800) return;
+    if (!force && now.difference(_lastAutoMove).inMilliseconds < 250) return;
     _lastAutoMove = now;
 
     _safeMoveMap(ll, _mapController.camera.zoom);
@@ -268,7 +269,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-
             SizedBox(
               height: 220,
               width: double.infinity,
@@ -312,12 +312,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate:
-                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.mini_strava',
                     ),
-
-
                     if (_trackPoints.length >= 2)
                       PolylineLayer(
                         polylines: [
@@ -327,7 +324,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                           ),
                         ],
                       ),
-
                     if (_current != null)
                       MarkerLayer(
                         markers: [
@@ -343,23 +339,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
 
-
-            DropdownButtonFormField<ActivityType>(
+            DropdownButtonFormField<act.ActivityType>(
               initialValue: c.type,
               decoration: const InputDecoration(labelText: 'Typ aktywności'),
               items: const [
-                DropdownMenuItem(value: ActivityType.run, child: Text('Bieg')),
-                DropdownMenuItem(value: ActivityType.bike, child: Text('Rower')),
-                DropdownMenuItem(value: ActivityType.walk, child: Text('Spacer')),
+                DropdownMenuItem(value: act.ActivityType.run, child: Text('Bieg')),
+                DropdownMenuItem(value: act.ActivityType.bike, child: Text('Rower')),
+                DropdownMenuItem(value: act.ActivityType.walk, child: Text('Spacer')),
               ],
-              onChanged: isIdle ? (v) => c.setType(v ?? ActivityType.run) : null,
+              onChanged: isIdle ? (v) => c.setType(v ?? act.ActivityType.run) : null,
             ),
 
             const SizedBox(height: 12),
-
 
             Row(
               children: [
@@ -383,7 +376,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
             const SizedBox(height: 24),
 
-
             Text(_format(c.elapsed), style: Theme.of(context).textTheme.displaySmall),
             const SizedBox(height: 24),
 
@@ -393,7 +385,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   child: ElevatedButton(
                     onPressed: isIdle
                         ? () {
-
                       _distanceKm = 0.0;
                       _lastForDistance = null;
                       _trackPoints.clear();
@@ -401,6 +392,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
                       c.start();
                       if (_current != null) _autoFollowIfNeeded(_current!, force: true);
+
                       setState(() {});
                     }
                         : null,
@@ -423,9 +415,16 @@ class _ActivityScreenState extends State<ActivityScreen> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: (isRunning || isPaused)
-                    ? () {
+                    ? () async {
                   _stopTracking();
-                  c.finish(context);
+
+                  await c.finish(
+                    context,
+                    distanceKm: _distanceKm,
+                    track: _trackPoints
+                        .map((p) => GpsPoint(lat: p.latitude, lng: p.longitude))
+                        .toList(),
+                  );
                 }
                     : null,
                 child: const Text('Zakończ i zapisz'),

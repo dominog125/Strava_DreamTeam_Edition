@@ -5,6 +5,7 @@ abstract class ActivityHistoryLocalDataSource {
   Future<void> upsert(ActivityHistoryHiveModel item);
   Future<void> delete(String id);
 
+
   Future<List<ActivityHistoryHiveModel>> getPending();
   Future<void> markSynced(String id);
   Future<void> markFailed(String id);

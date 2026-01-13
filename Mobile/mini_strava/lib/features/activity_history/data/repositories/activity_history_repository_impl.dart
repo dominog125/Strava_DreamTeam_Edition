@@ -20,9 +20,11 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
   Future<ActivityDetails> getById(String id) async {
     final all = await local.getAll();
     final found = all.firstWhere((e) => e.id == id);
-    return ActivityDetails(summary: _toSummaryEntity(found), gpsTrack: const []);
+    return ActivityDetails(
+      summary: _toSummaryEntity(found),
+      gpsTrack: const [],
+    );
   }
-
 
   Future<void> addManual({
     required DateTime date,
@@ -48,9 +50,66 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       syncStatus: SyncStatus.pending,
       createdAtIso: nowIso,
       updatedAtIso: nowIso,
+      title: null,
+      note: null,
+      photoPath: null,
     );
 
     await local.upsert(model);
+  }
+
+  /// ✅ Aktualizacja meta + typ
+  /// - typ: ustawiasz `type` (opcjonalnie)
+  /// - usuwanie pól: clearTitle/clearNote/clearPhoto
+  /// Uwaga: copyWith w modelu NIE ma pola `type`, więc przy zmianie typu tworzymy nowy model.
+  @override
+  Future<void> updateMeta({
+    required String id,
+    ActivityType? type,
+    String? title,
+    String? note,
+    String? photoPath,
+    bool clearTitle = false,
+    bool clearNote = false,
+    bool clearPhoto = false,
+  }) async {
+    final all = await local.getAll();
+    final found = all.firstWhere((e) => e.id == id);
+
+    final nowIso = DateTime.now().toIso8601String();
+
+    // 1) aktualizujemy meta polami, które copyWith obsługuje
+    final updated = found.copyWith(
+      title: title,
+      note: note,
+      photoPath: photoPath,
+      clearTitle: clearTitle,
+      clearNote: clearNote,
+      clearPhoto: clearPhoto,
+      updatedAtIso: nowIso,
+      syncStatus: SyncStatus.pending,
+    );
+
+    // 2) jeśli ma być zmiana typu -> budujemy finalny model ręcznie (bo copyWith nie ma `type`)
+    final finalModel = (type == null)
+        ? updated
+        : ActivityHistoryHiveModel(
+      id: updated.id,
+      dateIso: updated.dateIso,
+      type: _typeToString(type),
+      durationSeconds: updated.durationSeconds,
+      distanceKm: updated.distanceKm,
+      paceMinPerKm: updated.paceMinPerKm,
+      avgSpeedKmH: updated.avgSpeedKmH,
+      syncStatus: updated.syncStatus,
+      createdAtIso: updated.createdAtIso,
+      updatedAtIso: updated.updatedAtIso,
+      title: updated.title,
+      note: updated.note,
+      photoPath: updated.photoPath,
+    );
+
+    await local.upsert(finalModel);
   }
 
   ActivitySummary _toSummaryEntity(ActivityHistoryHiveModel m) {
@@ -62,6 +121,9 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       distanceKm: m.distanceKm,
       paceMinPerKm: m.paceMinPerKm,
       avgSpeedKmH: m.avgSpeedKmH,
+      title: m.title,
+      note: m.note,
+      photoPath: m.photoPath,
     );
   }
 
@@ -72,8 +134,10 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       case 'bike':
         return ActivityType.bike;
       case 'walk':
-      default:
         return ActivityType.walk;
+      case 'unknown':
+      default:
+        return ActivityType.unknown;
     }
   }
 
@@ -85,6 +149,10 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
         return 'bike';
       case ActivityType.walk:
         return 'walk';
+      case ActivityType.unknown:
+        return 'unknown';
     }
   }
 }
+
+

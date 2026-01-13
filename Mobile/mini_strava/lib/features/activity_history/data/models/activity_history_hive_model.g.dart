@@ -28,13 +28,16 @@ class ActivityHistoryHiveModelAdapter
       syncStatus: fields[7] as SyncStatus,
       createdAtIso: fields[8] as String,
       updatedAtIso: fields[9] as String,
+      title: fields[10] as String?,
+      note: fields[11] as String?,
+      photoPath: fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ActivityHistoryHiveModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -54,7 +57,13 @@ class ActivityHistoryHiveModelAdapter
       ..writeByte(8)
       ..write(obj.createdAtIso)
       ..writeByte(9)
-      ..write(obj.updatedAtIso);
+      ..write(obj.updatedAtIso)
+      ..writeByte(10)
+      ..write(obj.title)
+      ..writeByte(11)
+      ..write(obj.note)
+      ..writeByte(12)
+      ..write(obj.photoPath);
   }
 
   @override

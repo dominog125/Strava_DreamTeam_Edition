@@ -13,15 +13,15 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
-
+  // AUTH TOKENS
   Hive.registerAdapter(AuthTokensModelAdapter());
   await Hive.openBox<AuthTokensModel>('auth_tokens');
 
-
+  // ACTIVITIES
   Hive.registerAdapter(ActivityModelAdapter());
   await Hive.openBox<ActivityModel>('activities');
 
-
+  // ACTIVITY HISTORY
   Hive.registerAdapter(SyncStatusAdapter());
   Hive.registerAdapter(ActivityHistoryHiveModelAdapter());
   await Hive.openBox<ActivityHistoryHiveModel>('activity_history');

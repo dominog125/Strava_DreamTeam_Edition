@@ -41,6 +41,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   Future<void> _initLocation() async {
+    if (!mounted) return;
     setState(() {
       _locLoading = true;
       _locError = null;
@@ -48,6 +49,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
     try {
       final enabled = await geo.Geolocator.isLocationServiceEnabled();
+      if (!mounted) return;
+
       if (!enabled) {
         setState(() {
           _locError = 'Włącz usługi lokalizacji (GPS).';
@@ -60,6 +63,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
       if (perm == geo.LocationPermission.denied) {
         perm = await geo.Geolocator.requestPermission();
       }
+      if (!mounted) return;
+
       if (perm == geo.LocationPermission.denied) {
         setState(() {
           _locError = 'Brak zgody na lokalizację.';
@@ -67,6 +72,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
         });
         return;
       }
+
       if (perm == geo.LocationPermission.deniedForever) {
         setState(() {
           _locError = 'Zgoda na lokalizację zablokowana w ustawieniach.';
@@ -78,6 +84,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       final pos = await geo.Geolocator.getCurrentPosition(
         desiredAccuracy: geo.LocationAccuracy.best,
       );
+      if (!mounted) return;
 
       final ll = LatLng(pos.latitude, pos.longitude);
 
@@ -89,11 +96,15 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
       // NIE ruszaj mapy zanim się nie wyrenderuje:
       if (_mapReady) {
-        _mapController.move(ll, 16);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _mapController.move(ll, 16);
+        });
       } else {
         _pendingMoveTo = ll;
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _locError = 'Nie udało się pobrać lokalizacji: $e';
         _locLoading = false;
@@ -154,15 +165,21 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     initialZoom: _current == null ? 10 : 16,
                     onMapReady: () {
                       _mapReady = true;
-                      if (_pendingMoveTo != null) {
-                        _mapController.move(_pendingMoveTo!, 16);
+
+                      final toMove = _pendingMoveTo;
+                      if (toMove != null) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!mounted) return;
+                          _mapController.move(toMove, 16);
+                        });
                         _pendingMoveTo = null;
                       }
                     },
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      urlTemplate:
+                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.mini_strava',
                     ),
                     if (_current != null)
@@ -180,7 +197,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
 
             DropdownButtonFormField<ActivityType>(
@@ -193,8 +209,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ],
               onChanged: isIdle ? (v) => c.setType(v ?? ActivityType.run) : null,
             ),
-
             const SizedBox(height: 24),
+
             Text(_format(c.elapsed), style: Theme.of(context).textTheme.displaySmall),
             const SizedBox(height: 24),
 
@@ -215,8 +231,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
+
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(

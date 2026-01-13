@@ -161,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ElevatedButton.icon(
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.activity),
                 icon: const Icon(Icons.directions_run),
-                label: const Text('Moje aktywności'),
+                label: const Text('Rozpocznij aktywność'),
               ),
             ),
             const SizedBox(height: 12),

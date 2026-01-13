@@ -31,7 +31,7 @@ import 'package:mini_strava/features/activity/data/repositories/activity_reposit
 import 'package:mini_strava/features/activity/domain/repositories/activity_repository.dart';
 import 'package:mini_strava/features/activity/domain/usecases/save_activity_usecase.dart';
 
-// ACTIVITY HISTORY (Hive / offline-first)
+// ACTIVITY HISTORY (Hive)
 import 'package:mini_strava/features/activity_history/data/models/activity_history_hive_model.dart';
 import 'package:mini_strava/features/activity_history/data/datasources/activity_history_local_data_source.dart';
 import 'package:mini_strava/features/activity_history/data/datasources/activity_history_local_data_source_impl.dart';
@@ -40,8 +40,10 @@ import 'package:mini_strava/features/activity_history/domain/repositories/activi
 import 'package:mini_strava/features/activity_history/domain/usecases/get_activity_history_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/get_activity_details_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/add_manual_activity_usecase.dart';
-import 'package:mini_strava/features/activity_history/data/datasources/activity_history_remote_fake_data_source.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/get_user_stats_usecase.dart';
+import 'package:mini_strava/features/activity_history/domain/usecases/update_activity_meta_usecase.dart';
+
+
 
 final sl = GetIt.instance;
 
@@ -112,7 +114,7 @@ void setupInjector(SharedPreferences prefs) {
 
   sl.registerLazySingleton(() => SaveActivityUseCase(sl<ActivityRepository>()));
 
-// ---------- ACTIVITY HISTORY (Hive / offline-first) ----------
+  // ---------- ACTIVITY HISTORY (Hive) ----------
   sl.registerLazySingleton<Box<ActivityHistoryHiveModel>>(
         () => Hive.box<ActivityHistoryHiveModel>('activity_history'),
     instanceName: 'activityHistoryBox',
@@ -135,12 +137,9 @@ void setupInjector(SharedPreferences prefs) {
   sl.registerLazySingleton(() => GetActivityHistoryUseCase(sl<ActivityHistoryRepository>()));
   sl.registerLazySingleton(() => GetActivityDetailsUseCase(sl<ActivityHistoryRepository>()));
   sl.registerLazySingleton(() => AddManualActivityUseCase(sl<ActivityHistoryRepositoryImpl>()));
+  sl.registerLazySingleton(() => UpdateActivityMetaUseCase(sl<ActivityHistoryRepositoryImpl>()));
+
+  // stats do profilu (liczone z historii)
   sl.registerLazySingleton(() => GetUserStatsUseCase(sl<GetActivityHistoryUseCase>()));
-
-
-
-  sl.registerLazySingleton<ActivityHistoryRemoteFakeDataSource>(
-        () => ActivityHistoryRemoteFakeDataSource(),
-  );
 
 }

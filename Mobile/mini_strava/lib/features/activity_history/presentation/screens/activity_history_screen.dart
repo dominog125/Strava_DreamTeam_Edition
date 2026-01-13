@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'package:mini_strava/core/di/injector.dart';
+
 import 'package:mini_strava/features/activity_history/domain/entities/activity_summary.dart';
 import 'package:mini_strava/features/activity_history/domain/entities/activity_type.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/get_activity_history_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/add_manual_activity_usecase.dart';
+
+// ✅ NOWE: szczegóły
+import 'package:mini_strava/features/activity_history/presentation/screens/activity_details_screen.dart';
 
 class ActivityHistoryScreen extends StatefulWidget {
   const ActivityHistoryScreen({super.key});
@@ -57,7 +60,6 @@ class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
       context: context,
       builder: (_) => const _AddActivityDialog(),
     );
-
     if (result == null) return;
 
     await _addManual(
@@ -69,6 +71,18 @@ class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
 
     if (!mounted) return;
     await _load();
+  }
+
+  Future<void> _openDetails(String id) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => ActivityDetailsScreen(id: id)),
+    );
+
+    // ✅ jeśli wróciło true (zapisano zmiany) → odśwież listę
+    if (changed == true && mounted) {
+      await _load();
+    }
   }
 
   @override
@@ -91,7 +105,10 @@ class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
             children: [
               Text(_error!),
               const SizedBox(height: 12),
-              ElevatedButton(onPressed: _load, child: const Text('Spróbuj ponownie')),
+              ElevatedButton(
+                onPressed: _load,
+                child: const Text('Spróbuj ponownie'),
+              ),
             ],
           ),
         ),
@@ -102,7 +119,13 @@ class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
           padding: const EdgeInsets.all(16),
           itemCount: _items.length,
           separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) => _ActivityCard(activity: _items[index]),
+          itemBuilder: (context, index) {
+            final item = _items[index];
+            return _ActivityCard(
+              activity: item,
+              onTap: () => _openDetails(item.id),
+            );
+          },
         ),
       ),
     );
@@ -111,36 +134,56 @@ class _ActivityHistoryScreenState extends State<ActivityHistoryScreen> {
 
 class _ActivityCard extends StatelessWidget {
   final ActivitySummary activity;
-  const _ActivityCard({required this.activity});
+  final VoidCallback? onTap;
+
+  const _ActivityCard({
+    required this.activity,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final title = (activity.title ?? '').trim();
+
     return Card(
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _TypeChip(type: activity.type),
-                Text(DateFormat('yyyy-MM-dd').format(activity.date),
-                    style: Theme.of(context).textTheme.bodySmall),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _TypeChip(type: activity.type),
+                  Text(
+                    DateFormat('yyyy-MM-dd').format(activity.date),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              if (title.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _Stat(label: 'Czas', value: _formatDuration(activity.duration)),
-                _Stat(label: 'Dystans', value: '${activity.distanceKm.toStringAsFixed(2)} km'),
-                _Stat(label: 'Tempo', value: '${activity.paceMinPerKm.toStringAsFixed(1)} min/km'),
-                _Stat(label: 'Śr. prędkość', value: '${activity.avgSpeedKmH.toStringAsFixed(1)} km/h'),
-              ],
-            ),
-          ],
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _Stat(label: 'Czas', value: _formatDuration(activity.duration)),
+                  _Stat(label: 'Dystans', value: '${activity.distanceKm.toStringAsFixed(2)} km'),
+                  _Stat(label: 'Tempo', value: '${activity.paceMinPerKm.toStringAsFixed(1)} min/km'),
+                  _Stat(label: 'Śr. prędkość', value: '${activity.avgSpeedKmH.toStringAsFixed(1)} km/h'),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -150,6 +193,7 @@ class _ActivityCard extends StatelessWidget {
 class _Stat extends StatelessWidget {
   final String label;
   final String value;
+
   const _Stat({required this.label, required this.value});
 
   @override
@@ -166,6 +210,7 @@ class _Stat extends StatelessWidget {
 
 class _TypeChip extends StatelessWidget {
   final ActivityType type;
+
   const _TypeChip({required this.type});
 
   @override
@@ -189,6 +234,11 @@ class _TypeChip extends StatelessWidget {
         text = 'Spacer';
         icon = Icons.directions_walk;
         color = Colors.blue;
+        break;
+      case ActivityType.unknown:
+        text = 'Nie podano';
+        icon = Icons.help_outline;
+        color = Colors.grey;
         break;
     }
 
@@ -233,6 +283,7 @@ class _AddActivityDialog extends StatefulWidget {
 
 class _AddActivityDialogState extends State<_AddActivityDialog> {
   final _formKey = GlobalKey<FormState>();
+
   DateTime _date = DateTime.now();
   ActivityType _type = ActivityType.run;
 
@@ -310,7 +361,10 @@ class _AddActivityDialogState extends State<_AddActivityDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anuluj')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Anuluj'),
+        ),
         ElevatedButton(
           onPressed: () {
             if (!(_formKey.currentState?.validate() ?? false)) return;

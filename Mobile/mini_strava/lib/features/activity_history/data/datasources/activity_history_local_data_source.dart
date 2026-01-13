@@ -9,3 +9,4 @@ abstract class ActivityHistoryLocalDataSource {
   Future<void> markSynced(String id);
   Future<void> markFailed(String id);
 }
+

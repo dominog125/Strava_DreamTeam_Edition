@@ -1,7 +1,7 @@
 import '../../domain/entities/activity_type.dart';
 
 class ActivityTypeModel {
-  final String value; // "run" | "bike" | "walk"
+  final String value;
 
   const ActivityTypeModel(this.value);
 
@@ -14,6 +14,7 @@ class ActivityTypeModel {
       case 'walk':
       default:
         return ActivityType.walk;
+
     }
   }
 
@@ -25,6 +26,8 @@ class ActivityTypeModel {
         return const ActivityTypeModel('bike');
       case ActivityType.walk:
         return const ActivityTypeModel('walk');
+      case ActivityType.unknown:
+        return const ActivityTypeModel('unknown');
     }
   }
 }

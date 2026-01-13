@@ -1,1 +1,2 @@
-enum ActivityType { run, bike, walk }
+enum ActivityType { run, bike, walk, unknown }
+

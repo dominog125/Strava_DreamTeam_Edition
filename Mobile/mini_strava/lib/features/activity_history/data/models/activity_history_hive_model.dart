@@ -45,6 +45,16 @@ class ActivityHistoryHiveModel extends HiveObject {
   @HiveField(9)
   final String updatedAtIso;
 
+
+  @HiveField(10)
+  final String? title;
+
+  @HiveField(11)
+  final String? note;
+
+  @HiveField(12)
+  final String? photoPath;
+
   ActivityHistoryHiveModel({
     required this.id,
     required this.dateIso,
@@ -56,11 +66,20 @@ class ActivityHistoryHiveModel extends HiveObject {
     required this.syncStatus,
     required this.createdAtIso,
     required this.updatedAtIso,
+    this.title,
+    this.note,
+    this.photoPath,
   });
 
   ActivityHistoryHiveModel copyWith({
     SyncStatus? syncStatus,
     String? updatedAtIso,
+    String? title,
+    String? note,
+    String? photoPath,
+    bool clearTitle = false,
+    bool clearNote = false,
+    bool clearPhoto = false,
   }) {
     return ActivityHistoryHiveModel(
       id: id,
@@ -73,6 +92,10 @@ class ActivityHistoryHiveModel extends HiveObject {
       syncStatus: syncStatus ?? this.syncStatus,
       createdAtIso: createdAtIso,
       updatedAtIso: updatedAtIso ?? this.updatedAtIso,
+      title: clearTitle ? null : (title ?? this.title),
+      note: clearNote ? null : (note ?? this.note),
+      photoPath: clearPhoto ? null : (photoPath ?? this.photoPath),
     );
   }
 }
+

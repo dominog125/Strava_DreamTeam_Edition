@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:flutter_map/flutter_map.dart';
@@ -24,6 +27,18 @@ class _ActivityScreenState extends State<ActivityScreen> {
   String? _locError;
   bool _locLoading = true;
 
+  // ---- tracking dystansu / tempa ----
+  StreamSubscription<geo.Position>? _posSub;
+  LatLng? _lastForDistance;
+  double _distanceKm = 0.0;
+
+
+  final List<LatLng> _trackPoints = [];
+
+
+  bool _followUser = false;
+  DateTime _lastAutoMove = DateTime.fromMillisecondsSinceEpoch(0);
+
   @override
   void initState() {
     super.initState();
@@ -31,10 +46,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
     _initLocation();
   }
 
-  void _onChanged() => setState(() {});
+  void _onChanged() {
+    _syncTrackingWithState();
+    setState(() {});
+  }
 
   @override
   void dispose() {
+    _posSub?.cancel();
     c.removeListener(_onChanged);
     c.dispose();
     super.dispose();
@@ -87,22 +106,16 @@ class _ActivityScreenState extends State<ActivityScreen> {
       if (!mounted) return;
 
       final ll = LatLng(pos.latitude, pos.longitude);
-
       setState(() {
         _current = ll;
         _locLoading = false;
         _locError = null;
       });
 
-      // NIE ruszaj mapy zanim się nie wyrenderuje:
-      if (_mapReady) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _mapController.move(ll, 16);
-        });
-      } else {
-        _pendingMoveTo = ll;
-      }
+      _safeMoveMap(ll, 16);
+
+
+      _syncTrackingWithState();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -112,12 +125,133 @@ class _ActivityScreenState extends State<ActivityScreen> {
     }
   }
 
+  void _syncTrackingWithState() {
+    final isRunning = c.state == ActivityState.running;
+
+
+    _followUser = isRunning;
+
+    if (isRunning) {
+      _startTracking();
+      if (_current != null) _autoFollowIfNeeded(_current!, force: true);
+    } else {
+      _stopTracking();
+    }
+  }
+
+  void _startTracking() {
+    if (_posSub != null) return;
+    if (_locLoading || _locError != null) return;
+
+    if (_current != null) {
+      _lastForDistance = _current;
+      // jeśli startujemy i track pusty, dodaj pierwszy punkt
+      if (_trackPoints.isEmpty) _trackPoints.add(_current!);
+    }
+
+    const settings = geo.LocationSettings(
+      accuracy: geo.LocationAccuracy.best,
+      distanceFilter: 1,
+    );
+
+    _posSub = geo.Geolocator.getPositionStream(locationSettings: settings).listen(
+          (pos) {
+        final ll = LatLng(pos.latitude, pos.longitude);
+
+        final prev = _lastForDistance;
+        _lastForDistance = ll;
+
+        setState(() {
+          _current = ll;
+
+
+          if (prev != null) {
+            final meters = _haversineMeters(prev, ll);
+            if (meters >= 0.5 && meters <= 120) {
+              _distanceKm += meters / 1000.0;
+
+
+
+              _trackPoints.add(ll);
+            }
+          }
+        });
+
+
+        _autoFollowIfNeeded(ll);
+      },
+      onError: (e) {
+        if (!mounted) return;
+        setState(() => _locError = 'Błąd GPS: $e');
+      },
+    );
+  }
+
+  void _stopTracking() {
+    _posSub?.cancel();
+    _posSub = null;
+    _lastForDistance = null;
+  }
+
+  void _autoFollowIfNeeded(LatLng ll, {bool force = false}) {
+    if (!_followUser) return;
+    if (!_mapReady) {
+      _pendingMoveTo = ll;
+      return;
+    }
+
+    final now = DateTime.now();
+    if (!force && now.difference(_lastAutoMove).inMilliseconds < 800) return;
+    _lastAutoMove = now;
+
+    _safeMoveMap(ll, _mapController.camera.zoom);
+  }
+
+  void _safeMoveMap(LatLng ll, double zoom) {
+    if (_mapReady) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        try {
+          _mapController.move(ll, zoom);
+        } catch (_) {}
+      });
+    } else {
+      _pendingMoveTo = ll;
+    }
+  }
+
+  double _haversineMeters(LatLng a, LatLng b) {
+    const R = 6371000.0;
+    final lat1 = a.latitude * math.pi / 180.0;
+    final lat2 = b.latitude * math.pi / 180.0;
+    final dLat = (b.latitude - a.latitude) * math.pi / 180.0;
+    final dLon = (b.longitude - a.longitude) * math.pi / 180.0;
+
+    final sinDlat = math.sin(dLat / 2);
+    final sinDlon = math.sin(dLon / 2);
+
+    final aa = sinDlat * sinDlat +
+        math.cos(lat1) * math.cos(lat2) * sinDlon * sinDlon;
+
+    final c = 2 * math.atan2(math.sqrt(aa), math.sqrt(1 - aa));
+    return R * c;
+  }
+
   String _format(Duration d) {
     String two(int n) => n.toString().padLeft(2, '0');
     final h = d.inHours;
     final m = d.inMinutes.remainder(60);
     final s = d.inSeconds.remainder(60);
     return '${two(h)}:${two(m)}:${two(s)}';
+  }
+
+  String _formatPace() {
+    if (_distanceKm <= 0.01) return '--:-- /km';
+    final minutes = c.elapsed.inSeconds / 60.0;
+    final pace = minutes / _distanceKm;
+    final paceMin = pace.floor();
+    final paceSec = ((pace - paceMin) * 60).round().clamp(0, 59);
+    return '${paceMin.toString().padLeft(2, '0')}:${paceSec.toString().padLeft(2, '0')} /km';
   }
 
   @override
@@ -134,6 +268,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+
             SizedBox(
               height: 220,
               width: double.infinity,
@@ -165,7 +300,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     initialZoom: _current == null ? 10 : 16,
                     onMapReady: () {
                       _mapReady = true;
-
                       final toMove = _pendingMoveTo;
                       if (toMove != null) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -182,6 +316,18 @@ class _ActivityScreenState extends State<ActivityScreen> {
                       'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.mini_strava',
                     ),
+
+
+                    if (_trackPoints.length >= 2)
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: _trackPoints,
+                            strokeWidth: 4,
+                          ),
+                        ],
+                      ),
+
                     if (_current != null)
                       MarkerLayer(
                         markers: [
@@ -197,7 +343,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
+
 
             DropdownButtonFormField<ActivityType>(
               initialValue: c.type,
@@ -209,7 +357,32 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ],
               onChanged: isIdle ? (v) => c.setType(v ?? ActivityType.run) : null,
             ),
+
+            const SizedBox(height: 12),
+
+
+            Row(
+              children: [
+                Expanded(
+                  child: _MetricCard(
+                    label: 'Tempo',
+                    value: _formatPace(),
+                    icon: Icons.speed,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _MetricCard(
+                    label: 'Dystans',
+                    value: '${_distanceKm.toStringAsFixed(2)} km',
+                    icon: Icons.route,
+                  ),
+                ),
+              ],
+            ),
+
             const SizedBox(height: 24),
+
 
             Text(_format(c.elapsed), style: Theme.of(context).textTheme.displaySmall),
             const SizedBox(height: 24),
@@ -218,7 +391,19 @@ class _ActivityScreenState extends State<ActivityScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: isIdle ? c.start : null,
+                    onPressed: isIdle
+                        ? () {
+
+                      _distanceKm = 0.0;
+                      _lastForDistance = null;
+                      _trackPoints.clear();
+                      if (_current != null) _trackPoints.add(_current!);
+
+                      c.start();
+                      if (_current != null) _autoFollowIfNeeded(_current!, force: true);
+                      setState(() {});
+                    }
+                        : null,
                     child: const Text('Start'),
                   ),
                 ),
@@ -231,13 +416,57 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 ),
               ],
             ),
+
             const SizedBox(height: 12),
 
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: (isRunning || isPaused) ? () => c.finish(context) : null,
+                onPressed: (isRunning || isPaused)
+                    ? () {
+                  _stopTracking();
+                  c.finish(context);
+                }
+                    : null,
                 child: const Text('Zakończ i zapisz'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _MetricCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        child: Row(
+          children: [
+            Icon(icon),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(value, style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 2),
+                  Text(label, style: Theme.of(context).textTheme.bodySmall),
+                ],
               ),
             ),
           ],

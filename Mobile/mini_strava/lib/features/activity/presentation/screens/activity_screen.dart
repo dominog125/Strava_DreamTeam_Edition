@@ -39,6 +39,12 @@ class _ActivityScreenState extends State<ActivityScreen> {
   Timer? _avgSpeedTimer;
   double _avgSpeedKmH = 0.0;
 
+  StreamSubscription<geo.Position>? _calibSub;
+  Timer? _calibTimeout;
+  bool _isCalibrating = false;
+  bool _gpsLocked = false;
+  final List<geo.Position> _calibSamples = [];
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +61,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   void dispose() {
     _avgSpeedTimer?.cancel();
     _posSub?.cancel();
+    _stopCalibration();
     c.removeListener(_onChanged);
     c.dispose();
     super.dispose();
@@ -114,6 +121,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       });
 
       _safeMoveMap(ll, 16);
+      _beginCalibration();
       _syncTrackingWithState();
     } catch (e) {
       if (!mounted) return;
@@ -124,11 +132,99 @@ class _ActivityScreenState extends State<ActivityScreen> {
     }
   }
 
+  void _beginCalibration() {
+    if (_locLoading || _locError != null) return;
+    if (_isCalibrating) return;
+
+    _stopCalibration();
+    _isCalibrating = true;
+    _gpsLocked = false;
+    _calibSamples.clear();
+
+    const settings = geo.LocationSettings(
+      accuracy: geo.LocationAccuracy.best,
+      distanceFilter: 0,
+    );
+
+    _calibSub = geo.Geolocator.getPositionStream(locationSettings: settings).listen(
+          (pos) {
+        if (pos.accuracy.isNaN) return;
+        if (pos.accuracy <= 0) return;
+
+        if (pos.accuracy <= 25) {
+          _calibSamples.add(pos);
+        }
+
+        if (_calibSamples.length >= 6) {
+          _finalizeCalibration();
+        } else {
+          setState(() {
+            _current = LatLng(pos.latitude, pos.longitude);
+          });
+        }
+      },
+      onError: (e) {
+        if (!mounted) return;
+        setState(() => _locError = 'Błąd GPS: $e');
+      },
+    );
+
+    _calibTimeout = Timer(const Duration(seconds: 8), () {
+      if (!mounted) return;
+      _finalizeCalibration(fallback: true);
+    });
+  }
+
+  void _stopCalibration() {
+    _calibTimeout?.cancel();
+    _calibTimeout = null;
+    _calibSub?.cancel();
+    _calibSub = null;
+    _isCalibrating = false;
+  }
+
+  void _finalizeCalibration({bool fallback = false}) {
+    if (!_isCalibrating) return;
+
+    LatLng? ll;
+
+    if (_calibSamples.isNotEmpty) {
+      final sorted = List<geo.Position>.from(_calibSamples)
+        ..sort((a, b) => a.accuracy.compareTo(b.accuracy));
+      final take = sorted.take(math.min(5, sorted.length)).toList();
+
+      final lat = take.map((p) => p.latitude).reduce((a, b) => a + b) / take.length;
+      final lng = take.map((p) => p.longitude).reduce((a, b) => a + b) / take.length;
+
+      ll = LatLng(lat, lng);
+    } else if (fallback && _current != null) {
+      ll = _current;
+    }
+
+    _stopCalibration();
+
+    if (ll != null) {
+      setState(() {
+        _current = ll;
+        _gpsLocked = true;
+      });
+      _safeMoveMap(ll, 16);
+    } else {
+      setState(() {
+        _gpsLocked = false;
+      });
+    }
+  }
+
   void _syncTrackingWithState() {
     final isRunning = c.state == ActivityState.running;
     _followUser = isRunning;
 
     if (isRunning) {
+      if (!_gpsLocked) {
+        _beginCalibration();
+        return;
+      }
       _startTracking();
       _startAvgSpeedTimer();
       if (_current != null) _autoFollowIfNeeded(_current!, force: true);
@@ -161,6 +257,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   void _startTracking() {
     if (_posSub != null) return;
     if (_locLoading || _locError != null) return;
+    if (!_gpsLocked) return;
 
     if (_current != null) {
       _lastForDistance = _current;
@@ -175,15 +272,23 @@ class _ActivityScreenState extends State<ActivityScreen> {
     _posSub = geo.Geolocator.getPositionStream(locationSettings: settings).listen(
           (pos) {
         final ll = LatLng(pos.latitude, pos.longitude);
-        final prev = _lastForDistance;
-        _lastForDistance = ll;
 
         setState(() {
           _current = ll;
+        });
 
-          if (prev != null) {
-            final meters = _haversineMeters(prev, ll);
-            if (meters >= 0.5 && meters <= 120) {
+        if (!_gpsLocked) {
+          _lastForDistance = ll;
+          return;
+        }
+
+        final prev = _lastForDistance;
+        _lastForDistance = ll;
+
+        if (prev != null) {
+          final meters = _haversineMeters(prev, ll);
+          if (meters >= 0.5 && meters <= 120) {
+            setState(() {
               _distanceKm += meters / 1000.0;
 
               final last = _trackPoints.isEmpty ? null : _trackPoints.last;
@@ -193,9 +298,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 final metersFromLast = _haversineMeters(last, ll);
                 if (metersFromLast >= 2) _trackPoints.add(ll);
               }
-            }
+            });
           }
-        });
+        }
 
         _autoFollowIfNeeded(ll);
       },
@@ -249,9 +354,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
     final sinDlat = math.sin(dLat / 2);
     final sinDlon = math.sin(dLon / 2);
 
-    final aa = sinDlat * sinDlat +
-        math.cos(lat1) * math.cos(lat2) * sinDlon * sinDlon;
-
+    final aa = sinDlat * sinDlat + math.cos(lat1) * math.cos(lat2) * sinDlon * sinDlon;
     final c = 2 * math.atan2(math.sqrt(aa), math.sqrt(1 - aa));
     return R * c;
   }
@@ -358,6 +461,34 @@ class _ActivityScreenState extends State<ActivityScreen> {
                           ),
                         ],
                       ),
+                    if (_isCalibrating || !_gpsLocked)
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text('Kalibracja GPS', style: TextStyle(color: Colors.white)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -420,13 +551,23 @@ class _ActivityScreenState extends State<ActivityScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: isIdle
+                    onPressed: (isIdle && !_locLoading && _locError == null)
                         ? () {
                       _distanceKm = 0.0;
                       _avgSpeedKmH = 0.0;
                       _lastForDistance = null;
                       _trackPoints.clear();
-                      if (_current != null) _trackPoints.add(_current!);
+
+                      if (!_gpsLocked) {
+                        _beginCalibration();
+                        return;
+                      }
+
+                      if (_current != null) {
+                        _trackPoints.add(_current!);
+                        _lastForDistance = _current;
+                      }
+
                       c.start();
                       if (_current != null) _autoFollowIfNeeded(_current!, force: true);
                       setState(() {});
@@ -438,7 +579,18 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: isRunning ? c.pause : (isPaused ? c.resume : null),
+                    onPressed: isRunning
+                        ? c.pause
+                        : (isPaused
+                        ? () {
+                      if (!_gpsLocked) {
+                        _beginCalibration();
+                        return;
+                      }
+                      if (_current != null) _lastForDistance = _current;
+                      c.resume();
+                    }
+                        : null),
                     child: Text(isPaused ? 'Wznów' : 'Pauza'),
                   ),
                 ),
@@ -455,9 +607,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   await c.finish(
                     context,
                     distanceKm: _distanceKm,
-                    track: _trackPoints
-                        .map((p) => GpsPoint(lat: p.latitude, lng: p.longitude))
-                        .toList(),
+                    track: _trackPoints.map((p) => GpsPoint(lat: p.latitude, lng: p.longitude)).toList(),
                   );
                 }
                     : null,

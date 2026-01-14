@@ -50,7 +50,7 @@ class LoginController extends ChangeNotifier {
 
       Navigator.of(context, rootNavigator: true)
           .pushNamedAndRemoveUntil(
-        AppRoutes.profile,
+        AppRoutes.home,
             (_) => false,
       );
     } catch (e) {

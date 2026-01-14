@@ -36,8 +36,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
   bool _locLoading = true;
 
   StreamSubscription<geo.Position>? _posSub;
+
   LatLng? _lastForDistance;
   double _distanceKm = 0.0;
+
   final List<LatLng> _trackPoints = [];
 
   bool _followUser = false;
@@ -48,6 +50,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   StreamSubscription<geo.Position>? _calibSub;
   Timer? _calibTimeout;
+
   bool _isCalibrating = false;
   bool _gpsLocked = false;
   final List<geo.Position> _calibSamples = [];
@@ -69,6 +72,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
     _avgSpeedTimer?.cancel();
     _posSub?.cancel();
     _stopCalibration();
+
     c.removeListener(_onChanged);
     c.dispose();
     super.dispose();
@@ -153,29 +157,26 @@ class _ActivityScreenState extends State<ActivityScreen> {
       distanceFilter: 0,
     );
 
-    _calibSub =
-        geo.Geolocator.getPositionStream(locationSettings: settings).listen(
-              (pos) {
-            if (pos.accuracy.isNaN) return;
-            if (pos.accuracy <= 0) return;
+    _calibSub = geo.Geolocator.getPositionStream(locationSettings: settings)
+        .listen((pos) {
+      if (pos.accuracy.isNaN) return;
+      if (pos.accuracy <= 0) return;
 
-            if (pos.accuracy <= 25) {
-              _calibSamples.add(pos);
-            }
+      if (pos.accuracy <= 25) {
+        _calibSamples.add(pos);
+      }
 
-            if (_calibSamples.length >= 6) {
-              _finalizeCalibration();
-            } else {
-              setState(() {
-                _current = LatLng(pos.latitude, pos.longitude);
-              });
-            }
-          },
-          onError: (e) {
-            if (!mounted) return;
-            setState(() => _locError = 'Błąd GPS: $e');
-          },
-        );
+      if (_calibSamples.length >= 6) {
+        _finalizeCalibration();
+      } else {
+        setState(() {
+          _current = LatLng(pos.latitude, pos.longitude);
+        });
+      }
+    }, onError: (e) {
+      if (!mounted) return;
+      setState(() => _locError = 'Błąd GPS: $e');
+    });
 
     _calibTimeout = Timer(const Duration(seconds: 8), () {
       if (!mounted) return;
@@ -186,8 +187,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
   void _stopCalibration() {
     _calibTimeout?.cancel();
     _calibTimeout = null;
+
     _calibSub?.cancel();
     _calibSub = null;
+
     _isCalibrating = false;
   }
 
@@ -199,7 +202,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
     if (_calibSamples.isNotEmpty) {
       final sorted = List<geo.Position>.from(_calibSamples)
         ..sort((a, b) => a.accuracy.compareTo(b.accuracy));
-
       final take = sorted.take(math.min(5, sorted.length)).toList();
 
       final lat =
@@ -247,7 +249,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   void _startAvgSpeedTimer() {
     if (_avgSpeedTimer != null) return;
-
     _avgSpeedTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) return;
 
@@ -259,6 +260,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
       final hours = seconds / 3600.0;
       final v = _distanceKm / hours;
+
       setState(() => _avgSpeedKmH = v.isFinite ? v : 0.0);
     });
   }
@@ -283,47 +285,44 @@ class _ActivityScreenState extends State<ActivityScreen> {
       distanceFilter: 1,
     );
 
-    _posSub =
-        geo.Geolocator.getPositionStream(locationSettings: settings).listen(
-              (pos) {
-            final ll = LatLng(pos.latitude, pos.longitude);
+    _posSub = geo.Geolocator.getPositionStream(locationSettings: settings)
+        .listen((pos) {
+      final ll = LatLng(pos.latitude, pos.longitude);
 
-            setState(() {
-              _current = ll;
-            });
+      setState(() {
+        _current = ll;
+      });
 
-            if (!_gpsLocked) {
-              _lastForDistance = ll;
-              return;
+      if (!_gpsLocked) {
+        _lastForDistance = ll;
+        return;
+      }
+
+      final prev = _lastForDistance;
+      _lastForDistance = ll;
+
+      if (prev != null) {
+        final meters = _haversineMeters(prev, ll);
+        if (meters >= 0.5 && meters <= 120) {
+          setState(() {
+            _distanceKm += meters / 1000.0;
+
+            final last = _trackPoints.isEmpty ? null : _trackPoints.last;
+            if (last == null) {
+              _trackPoints.add(ll);
+            } else {
+              final metersFromLast = _haversineMeters(last, ll);
+              if (metersFromLast >= 2) _trackPoints.add(ll);
             }
+          });
+        }
+      }
 
-            final prev = _lastForDistance;
-            _lastForDistance = ll;
-
-            if (prev != null) {
-              final meters = _haversineMeters(prev, ll);
-              if (meters >= 0.5 && meters <= 120) {
-                setState(() {
-                  _distanceKm += meters / 1000.0;
-
-                  final last = _trackPoints.isEmpty ? null : _trackPoints.last;
-                  if (last == null) {
-                    _trackPoints.add(ll);
-                  } else {
-                    final metersFromLast = _haversineMeters(last, ll);
-                    if (metersFromLast >= 2) _trackPoints.add(ll);
-                  }
-                });
-              }
-            }
-
-            _autoFollowIfNeeded(ll);
-          },
-          onError: (e) {
-            if (!mounted) return;
-            setState(() => _locError = 'Błąd GPS: $e');
-          },
-        );
+      _autoFollowIfNeeded(ll);
+    }, onError: (e) {
+      if (!mounted) return;
+      setState(() => _locError = 'Błąd GPS: $e');
+    });
   }
 
   void _stopTracking() {
@@ -334,7 +333,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   void _autoFollowIfNeeded(LatLng ll, {bool force = false}) {
     if (!_followUser) return;
-
     if (!_mapReady) {
       _pendingMoveTo = ll;
       return;
@@ -364,6 +362,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
     const r = 6371000.0;
     final lat1 = a.latitude * math.pi / 180.0;
     final lat2 = b.latitude * math.pi / 180.0;
+
     final dLat = (b.latitude - a.latitude) * math.pi / 180.0;
     final dLon = (b.longitude - a.longitude) * math.pi / 180.0;
 
@@ -402,24 +401,34 @@ class _ActivityScreenState extends State<ActivityScreen> {
     return '${(v.isFinite ? v : 0.0).toStringAsFixed(1)} km/h';
   }
 
-  Future<String?> _captureRouteImage(BuildContext ctx) async {
+
+  Future<String?> _captureRouteImage() async {
     try {
       final renderObject = _mapShotKey.currentContext?.findRenderObject();
       final boundary = renderObject is RenderRepaintBoundary ? renderObject : null;
       if (boundary == null) return null;
 
-      final view = View.of(ctx);
-      final ui.Image image = await boundary.toImage(pixelRatio: view.devicePixelRatio);
 
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final pixelRatio =
+          ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
+
+      final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
+      final byteData =
+      await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) return null;
 
       final Uint8List pngBytes = byteData.buffer.asUint8List();
-      final dir = await getTemporaryDirectory();
 
-      final file = File('${dir.path}/route_${DateTime.now().millisecondsSinceEpoch}.png');
+
+      final dir = await getApplicationDocumentsDirectory();
+      final routesDir = Directory('${dir.path}/routes');
+      if (!await routesDir.exists()) {
+        await routesDir.create(recursive: true);
+      }
+
+      final file = File(
+          '${routesDir.path}/route_${DateTime.now().millisecondsSinceEpoch}.png');
       await file.writeAsBytes(pngBytes, flush: true);
-
       return file.path;
     } catch (_) {
       return null;
@@ -485,7 +494,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     ),
                     children: [
                       TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.example.mini_strava',
                       ),
                       if (_trackPoints.length >= 2)
@@ -516,7 +526,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -526,7 +537,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     ),
                                     SizedBox(width: 8),
-                                    Text('Kalibracja GPS', style: TextStyle(color: Colors.white)),
+                                    Text('Kalibracja GPS',
+                                        style: TextStyle(color: Colors.white)),
                                   ],
                                 ),
                               ),
@@ -617,7 +629,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
                       }
 
                       c.start();
-                      if (_current != null) _autoFollowIfNeeded(_current!, force: true);
+                      if (_current != null) {
+                        _autoFollowIfNeeded(_current!, force: true);
+                      }
                       setState(() {});
                     }
                         : null,
@@ -650,19 +664,24 @@ class _ActivityScreenState extends State<ActivityScreen> {
               child: OutlinedButton(
                 onPressed: (isRunning || isPaused)
                     ? () async {
-                  final nav = Navigator.of(context);
-                  final routeImagePath = await _captureRouteImage(context);
-                  if (!mounted) return;
+
+                  final controller = c;
+                  final distance = _distanceKm;
+                  final track = _trackPoints
+                      .map((p) => GpsPoint(lat: p.latitude, lng: p.longitude))
+                      .toList();
 
                   _stopTracking();
                   _stopAvgSpeedTimer();
 
-                  await c.finish(
-                    nav.context,
-                    distanceKm: _distanceKm,
-                    track: _trackPoints
-                        .map((p) => GpsPoint(lat: p.latitude, lng: p.longitude))
-                        .toList(),
+                  final routeImagePath = await _captureRouteImage();
+
+                  if (!context.mounted) return;
+
+                  await controller.finish(
+                    context,
+                    distanceKm: distance,
+                    track: track,
                     routeImagePath: routeImagePath,
                   );
                 }

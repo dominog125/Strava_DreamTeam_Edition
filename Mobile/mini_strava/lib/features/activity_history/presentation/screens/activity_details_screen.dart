@@ -30,7 +30,6 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
 
   ActivityType _type = ActivityType.unknown;
   String? _photoPath;
-
   bool _saving = false;
 
   @override
@@ -100,15 +99,17 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
 
     final title = _titleCtrl.text.trim();
     final note = _noteCtrl.text.trim();
+
     final clearTitle = title.isEmpty;
     final clearNote = note.isEmpty;
     final clearPhoto = (_photoPath == null);
 
     setState(() => _saving = true);
+
     try {
       await _updateMeta(
         id: widget.id,
-        type: _type,
+        activityType: _type,
         title: clearTitle ? null : title,
         note: clearNote ? null : note,
         photoPath: _photoPath,
@@ -116,9 +117,8 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
         clearNote: clearNote,
         clearPhoto: clearPhoto,
       );
-
       if (!mounted) return;
-      Navigator.pop(context, true); // odświeża historię
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -172,21 +172,16 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
           : ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // 1) CHIP TYPU NA GÓRZE
           Align(
             alignment: Alignment.centerLeft,
             child: _TypeChip(type: _type, big: true),
           ),
           const SizedBox(height: 10),
-
-          // data (opcjonalnie, wygląda dobrze)
           Text(
             DateFormat('yyyy-MM-dd').format(d.summary.date),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),
-
-          // 2) ZMIANA TYPU
           DropdownButtonFormField<ActivityType>(
             initialValue: _type,
             decoration: const InputDecoration(
@@ -215,8 +210,6 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
                 setState(() => _type = v ?? ActivityType.unknown),
           ),
           const SizedBox(height: 16),
-
-          // 3) NAZWA AKTYWNOŚCI (POD TYPEM)
           TextFormField(
             controller: _titleCtrl,
             decoration: const InputDecoration(
@@ -226,8 +219,6 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // 4) NOTATKA
           TextFormField(
             controller: _noteCtrl,
             maxLines: 5,
@@ -238,18 +229,56 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // 5) ZDJĘCIE
           _PhotoCard(
             photoPath: _photoPath,
             onPickPhoto: _pickPhoto,
             onRemove: _removePhoto,
           ),
           const SizedBox(height: 16),
-
-          // 6) STATYSTYKI (bez zmian)
+          _RouteCard(routeImagePath: d.summary.routeImagePath),
+          const SizedBox(height: 16),
           _StatsCard(details: d),
         ],
+      ),
+    );
+  }
+}
+
+class _RouteCard extends StatelessWidget {
+  final String? routeImagePath;
+  const _RouteCard({required this.routeImagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = (routeImagePath ?? '').trim();
+    final file = p.isEmpty ? null : File(p);
+    final exists = (file != null && file.existsSync());
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Trasa', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 180,
+                width: double.infinity,
+                child: exists
+                    ? Image.file(file, fit: BoxFit.cover)
+                    : Container(
+                  color: Colors.black12,
+                  child: const Center(
+                    child: Icon(Icons.map_outlined, size: 48),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -341,9 +370,18 @@ class _StatsCard extends StatelessWidget {
               runSpacing: 12,
               children: [
                 _Stat(label: 'Czas', value: _formatDuration(s.duration)),
-                _Stat(label: 'Dystans', value: '${s.distanceKm.toStringAsFixed(2)} km'),
-                _Stat(label: 'Tempo', value: '${s.paceMinPerKm.toStringAsFixed(1)} min/km'),
-                _Stat(label: 'Śr. prędkość', value: '${s.avgSpeedKmH.toStringAsFixed(1)} km/h'),
+                _Stat(
+                  label: 'Dystans',
+                  value: '${s.distanceKm.toStringAsFixed(2)} km',
+                ),
+                _Stat(
+                  label: 'Tempo',
+                  value: '${s.paceMinPerKm.toStringAsFixed(1)} min/km',
+                ),
+                _Stat(
+                  label: 'Śr. prędkość',
+                  value: '${s.avgSpeedKmH.toStringAsFixed(1)} km/h',
+                ),
               ],
             ),
           ],
@@ -356,6 +394,7 @@ class _StatsCard extends StatelessWidget {
 class _Stat extends StatelessWidget {
   final String label;
   final String value;
+
   const _Stat({required this.label, required this.value});
 
   @override

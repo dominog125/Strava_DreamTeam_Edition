@@ -3,13 +3,14 @@ import '../models/activity_history_hive_model.dart';
 import 'activity_history_local_data_source.dart';
 
 class ActivityHistoryLocalDataSourceImpl implements ActivityHistoryLocalDataSource {
+  @override
   final Box<ActivityHistoryHiveModel> box;
+
   ActivityHistoryLocalDataSourceImpl(this.box);
 
   @override
   Future<List<ActivityHistoryHiveModel>> getAll() async {
     final items = box.values.toList();
-    // sort: newest first
     items.sort((a, b) => b.dateIso.compareTo(a.dateIso));
     return items;
   }

@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-
 import '../../../../core/di/injector.dart';
 
-// ACTIVITY
 import '../../domain/entities/activity.dart' as act;
 import '../../domain/usecases/save_activity_usecase.dart';
 
-// ACTIVITY HISTORY
 import '../../../activity_history/data/repositories/activity_history_repository_impl.dart';
 import '../../../activity_history/domain/entities/activity_type.dart' as hist;
 import '../../../activity_history/domain/entities/gps_point.dart';
@@ -16,7 +13,8 @@ enum ActivityState { idle, running, paused, finished }
 
 class ActivityController extends ChangeNotifier {
   final SaveActivityUseCase _save = sl<SaveActivityUseCase>();
-  final ActivityHistoryRepositoryImpl _history = sl<ActivityHistoryRepositoryImpl>();
+  final ActivityHistoryRepositoryImpl _history =
+  sl<ActivityHistoryRepositoryImpl>();
 
   act.ActivityType type = act.ActivityType.run;
   ActivityState state = ActivityState.idle;
@@ -46,10 +44,12 @@ class ActivityController extends ChangeNotifier {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (state != ActivityState.running) return;
+
       final now = DateTime.now();
       final delta = now.difference(_lastTick!);
       _elapsed += delta;
       _lastTick = now;
+
       notifyListeners();
     });
 
@@ -84,6 +84,7 @@ class ActivityController extends ChangeNotifier {
       BuildContext context, {
         required double distanceKm,
         required List<GpsPoint> track,
+        String? routeImagePath,
       }) async {
     if (state == ActivityState.idle) return;
 
@@ -102,9 +103,7 @@ class ActivityController extends ChangeNotifier {
     _timer?.cancel();
     _timer = null;
 
-
     await _save(activity);
-
 
     await _history.addFromActivity(
       date: startedAt,
@@ -112,6 +111,7 @@ class ActivityController extends ChangeNotifier {
       duration: _elapsed,
       distanceKm: distanceKm,
       track: track,
+      routeImagePath: routeImagePath,
     );
 
     if (!context.mounted) return;
@@ -120,10 +120,10 @@ class ActivityController extends ChangeNotifier {
       const SnackBar(content: Text('Zapisano aktywność ✅')),
     );
 
-    // reset
     state = ActivityState.idle;
     _startedAt = null;
     _elapsed = Duration.zero;
+
     notifyListeners();
   }
 

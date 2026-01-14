@@ -21,7 +21,6 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
   Future<ActivityDetails> getById(String id) async {
     final all = await local.getAll();
     final found = all.firstWhere((e) => e.id == id);
-
     final gps = (found.track ?? const <List<double>>[])
         .where((p) => p.length >= 2)
         .map((p) => GpsPoint(lat: p[0], lng: p[1]))
@@ -40,8 +39,8 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
     required double distanceKm,
   }) async {
     final minutes = duration.inSeconds / 60.0;
-    final pace = distanceKm > 0 ? (minutes / distanceKm) : 0.0;
-    final speed = minutes > 0 ? (distanceKm / (minutes / 60.0)) : 0.0;
+    final pace = distanceKm > 0 ? minutes / distanceKm : 0.0;
+    final speed = minutes > 0 ? distanceKm / (minutes / 60.0) : 0.0;
 
     final nowIso = DateTime.now().toIso8601String();
     final id = DateTime.now().millisecondsSinceEpoch.toString();
@@ -61,6 +60,7 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       note: null,
       photoPath: null,
       track: null,
+      routeImagePath: null,
     );
 
     await local.upsert(model);
@@ -72,10 +72,11 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
     required Duration duration,
     required double distanceKm,
     required List<GpsPoint> track,
+    String? routeImagePath,
   }) async {
     final minutes = duration.inSeconds / 60.0;
-    final pace = distanceKm > 0 ? (minutes / distanceKm) : 0.0;
-    final speed = minutes > 0 ? (distanceKm / (minutes / 60.0)) : 0.0;
+    final pace = distanceKm > 0 ? minutes / distanceKm : 0.0;
+    final speed = minutes > 0 ? distanceKm / (minutes / 60.0) : 0.0;
 
     final nowIso = DateTime.now().toIso8601String();
     final id = DateTime.now().millisecondsSinceEpoch.toString();
@@ -95,6 +96,7 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       note: null,
       photoPath: null,
       track: track.map((p) => [p.lat, p.lng]).toList(),
+      routeImagePath: routeImagePath,
     );
 
     await local.upsert(model);
@@ -103,7 +105,7 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
   @override
   Future<void> updateMeta({
     required String id,
-    ActivityType? type,
+    ActivityType? activityType,
     String? title,
     String? note,
     String? photoPath,
@@ -112,10 +114,11 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
     bool clearPhoto = false,
     List<List<double>>? track,
     bool clearTrack = false,
+    String? routeImagePath,
+    bool clearRouteImage = false,
   }) async {
     final all = await local.getAll();
     final found = all.firstWhere((e) => e.id == id);
-
     final nowIso = DateTime.now().toIso8601String();
 
     final updated = found.copyWith(
@@ -123,20 +126,22 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       note: note,
       photoPath: photoPath,
       track: track,
+      routeImagePath: routeImagePath,
       clearTitle: clearTitle,
       clearNote: clearNote,
       clearPhoto: clearPhoto,
       clearTrack: clearTrack,
+      clearRouteImage: clearRouteImage,
       updatedAtIso: nowIso,
       syncStatus: SyncStatus.pending,
     );
 
-    final finalModel = (type == null)
+    final finalModel = (activityType == null)
         ? updated
         : ActivityHistoryHiveModel(
       id: updated.id,
       dateIso: updated.dateIso,
-      type: _typeToString(type),
+      type: _typeToString(activityType),
       durationSeconds: updated.durationSeconds,
       distanceKm: updated.distanceKm,
       paceMinPerKm: updated.paceMinPerKm,
@@ -148,6 +153,7 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       note: updated.note,
       photoPath: updated.photoPath,
       track: updated.track,
+      routeImagePath: updated.routeImagePath,
     );
 
     await local.upsert(finalModel);
@@ -165,6 +171,7 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       title: m.title,
       note: m.note,
       photoPath: m.photoPath,
+      routeImagePath: m.routeImagePath,
     );
   }
 
@@ -176,7 +183,6 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
         return ActivityType.bike;
       case 'walk':
         return ActivityType.walk;
-      case 'unknown':
       default:
         return ActivityType.unknown;
     }

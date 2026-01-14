@@ -8,10 +8,10 @@ class ActivitySummary {
   final double distanceKm;
   final double paceMinPerKm;
   final double avgSpeedKmH;
-
   final String? title;
   final String? note;
   final String? photoPath;
+  final String? routeImagePath;
 
   const ActivitySummary({
     required this.id,
@@ -24,6 +24,6 @@ class ActivitySummary {
     this.title,
     this.note,
     this.photoPath,
+    this.routeImagePath,
   });
 }
-

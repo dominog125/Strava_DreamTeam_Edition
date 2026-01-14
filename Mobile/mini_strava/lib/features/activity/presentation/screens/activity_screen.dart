@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart' as geo;
+import 'package:flutter/rendering.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart' as geo;
 import 'package:latlong2/latlong.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../controller/activity_controller.dart';
 import '../../domain/entities/activity.dart' as act;
@@ -12,6 +17,7 @@ import '../../../activity_history/domain/entities/gps_point.dart';
 
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
+
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
 }
@@ -20,6 +26,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
   late final ActivityController c;
 
   final MapController _mapController = MapController();
+  final GlobalKey _mapShotKey = GlobalKey();
+
   bool _mapReady = false;
   LatLng? _pendingMoveTo;
 
@@ -29,7 +37,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   StreamSubscription<geo.Position>? _posSub;
   LatLng? _lastForDistance;
-
   double _distanceKm = 0.0;
   final List<LatLng> _trackPoints = [];
 
@@ -146,28 +153,29 @@ class _ActivityScreenState extends State<ActivityScreen> {
       distanceFilter: 0,
     );
 
-    _calibSub = geo.Geolocator.getPositionStream(locationSettings: settings).listen(
-          (pos) {
-        if (pos.accuracy.isNaN) return;
-        if (pos.accuracy <= 0) return;
+    _calibSub =
+        geo.Geolocator.getPositionStream(locationSettings: settings).listen(
+              (pos) {
+            if (pos.accuracy.isNaN) return;
+            if (pos.accuracy <= 0) return;
 
-        if (pos.accuracy <= 25) {
-          _calibSamples.add(pos);
-        }
+            if (pos.accuracy <= 25) {
+              _calibSamples.add(pos);
+            }
 
-        if (_calibSamples.length >= 6) {
-          _finalizeCalibration();
-        } else {
-          setState(() {
-            _current = LatLng(pos.latitude, pos.longitude);
-          });
-        }
-      },
-      onError: (e) {
-        if (!mounted) return;
-        setState(() => _locError = 'Błąd GPS: $e');
-      },
-    );
+            if (_calibSamples.length >= 6) {
+              _finalizeCalibration();
+            } else {
+              setState(() {
+                _current = LatLng(pos.latitude, pos.longitude);
+              });
+            }
+          },
+          onError: (e) {
+            if (!mounted) return;
+            setState(() => _locError = 'Błąd GPS: $e');
+          },
+        );
 
     _calibTimeout = Timer(const Duration(seconds: 8), () {
       if (!mounted) return;
@@ -191,10 +199,13 @@ class _ActivityScreenState extends State<ActivityScreen> {
     if (_calibSamples.isNotEmpty) {
       final sorted = List<geo.Position>.from(_calibSamples)
         ..sort((a, b) => a.accuracy.compareTo(b.accuracy));
+
       final take = sorted.take(math.min(5, sorted.length)).toList();
 
-      final lat = take.map((p) => p.latitude).reduce((a, b) => a + b) / take.length;
-      final lng = take.map((p) => p.longitude).reduce((a, b) => a + b) / take.length;
+      final lat =
+          take.map((p) => p.latitude).reduce((a, b) => a + b) / take.length;
+      final lng =
+          take.map((p) => p.longitude).reduce((a, b) => a + b) / take.length;
 
       ll = LatLng(lat, lng);
     } else if (fallback && _current != null) {
@@ -236,13 +247,16 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   void _startAvgSpeedTimer() {
     if (_avgSpeedTimer != null) return;
+
     _avgSpeedTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) return;
+
       final seconds = c.elapsed.inSeconds;
       if (seconds <= 0 || _distanceKm <= 0.001) {
         setState(() => _avgSpeedKmH = 0.0);
         return;
       }
+
       final hours = seconds / 3600.0;
       final v = _distanceKm / hours;
       setState(() => _avgSpeedKmH = v.isFinite ? v : 0.0);
@@ -269,46 +283,47 @@ class _ActivityScreenState extends State<ActivityScreen> {
       distanceFilter: 1,
     );
 
-    _posSub = geo.Geolocator.getPositionStream(locationSettings: settings).listen(
-          (pos) {
-        final ll = LatLng(pos.latitude, pos.longitude);
+    _posSub =
+        geo.Geolocator.getPositionStream(locationSettings: settings).listen(
+              (pos) {
+            final ll = LatLng(pos.latitude, pos.longitude);
 
-        setState(() {
-          _current = ll;
-        });
-
-        if (!_gpsLocked) {
-          _lastForDistance = ll;
-          return;
-        }
-
-        final prev = _lastForDistance;
-        _lastForDistance = ll;
-
-        if (prev != null) {
-          final meters = _haversineMeters(prev, ll);
-          if (meters >= 0.5 && meters <= 120) {
             setState(() {
-              _distanceKm += meters / 1000.0;
-
-              final last = _trackPoints.isEmpty ? null : _trackPoints.last;
-              if (last == null) {
-                _trackPoints.add(ll);
-              } else {
-                final metersFromLast = _haversineMeters(last, ll);
-                if (metersFromLast >= 2) _trackPoints.add(ll);
-              }
+              _current = ll;
             });
-          }
-        }
 
-        _autoFollowIfNeeded(ll);
-      },
-      onError: (e) {
-        if (!mounted) return;
-        setState(() => _locError = 'Błąd GPS: $e');
-      },
-    );
+            if (!_gpsLocked) {
+              _lastForDistance = ll;
+              return;
+            }
+
+            final prev = _lastForDistance;
+            _lastForDistance = ll;
+
+            if (prev != null) {
+              final meters = _haversineMeters(prev, ll);
+              if (meters >= 0.5 && meters <= 120) {
+                setState(() {
+                  _distanceKm += meters / 1000.0;
+
+                  final last = _trackPoints.isEmpty ? null : _trackPoints.last;
+                  if (last == null) {
+                    _trackPoints.add(ll);
+                  } else {
+                    final metersFromLast = _haversineMeters(last, ll);
+                    if (metersFromLast >= 2) _trackPoints.add(ll);
+                  }
+                });
+              }
+            }
+
+            _autoFollowIfNeeded(ll);
+          },
+          onError: (e) {
+            if (!mounted) return;
+            setState(() => _locError = 'Błąd GPS: $e');
+          },
+        );
   }
 
   void _stopTracking() {
@@ -319,6 +334,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   void _autoFollowIfNeeded(LatLng ll, {bool force = false}) {
     if (!_followUser) return;
+
     if (!_mapReady) {
       _pendingMoveTo = ll;
       return;
@@ -326,8 +342,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
     final now = DateTime.now();
     if (!force && now.difference(_lastAutoMove).inMilliseconds < 250) return;
-    _lastAutoMove = now;
 
+    _lastAutoMove = now;
     _safeMoveMap(ll, _mapController.camera.zoom);
   }
 
@@ -345,7 +361,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   double _haversineMeters(LatLng a, LatLng b) {
-    const R = 6371000.0;
+    const r = 6371000.0;
     final lat1 = a.latitude * math.pi / 180.0;
     final lat2 = b.latitude * math.pi / 180.0;
     final dLat = (b.latitude - a.latitude) * math.pi / 180.0;
@@ -354,9 +370,11 @@ class _ActivityScreenState extends State<ActivityScreen> {
     final sinDlat = math.sin(dLat / 2);
     final sinDlon = math.sin(dLon / 2);
 
-    final aa = sinDlat * sinDlat + math.cos(lat1) * math.cos(lat2) * sinDlon * sinDlon;
-    final c = 2 * math.atan2(math.sqrt(aa), math.sqrt(1 - aa));
-    return R * c;
+    final aa = sinDlat * sinDlat +
+        math.cos(lat1) * math.cos(lat2) * sinDlon * sinDlon;
+
+    final cc = 2 * math.atan2(math.sqrt(aa), math.sqrt(1 - aa));
+    return r * cc;
   }
 
   String _format(Duration d) {
@@ -382,6 +400,30 @@ class _ActivityScreenState extends State<ActivityScreen> {
     final hours = seconds / 3600.0;
     final v = _distanceKm / hours;
     return '${(v.isFinite ? v : 0.0).toStringAsFixed(1)} km/h';
+  }
+
+  Future<String?> _captureRouteImage(BuildContext ctx) async {
+    try {
+      final renderObject = _mapShotKey.currentContext?.findRenderObject();
+      final boundary = renderObject is RenderRepaintBoundary ? renderObject : null;
+      if (boundary == null) return null;
+
+      final view = View.of(ctx);
+      final ui.Image image = await boundary.toImage(pixelRatio: view.devicePixelRatio);
+
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return null;
+
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
+      final dir = await getTemporaryDirectory();
+
+      final file = File('${dir.path}/route_${DateTime.now().millisecondsSinceEpoch}.png');
+      await file.writeAsBytes(pngBytes, flush: true);
+
+      return file.path;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -422,74 +464,77 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     ),
                   ),
                 )
-                    : FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: center,
-                    initialZoom: _current == null ? 10 : 16,
-                    onMapReady: () {
-                      _mapReady = true;
-                      final toMove = _pendingMoveTo;
-                      if (toMove != null) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (!mounted) return;
-                          _mapController.move(toMove, 16);
-                        });
-                        _pendingMoveTo = null;
-                      }
-                    },
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.mini_strava',
+                    : RepaintBoundary(
+                  key: _mapShotKey,
+                  child: FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: center,
+                      initialZoom: _current == null ? 10 : 16,
+                      onMapReady: () {
+                        _mapReady = true;
+                        final toMove = _pendingMoveTo;
+                        if (toMove != null) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (!mounted) return;
+                            _mapController.move(toMove, 16);
+                          });
+                          _pendingMoveTo = null;
+                        }
+                      },
                     ),
-                    if (_trackPoints.length >= 2)
-                      PolylineLayer(
-                        polylines: [
-                          Polyline(points: _trackPoints, strokeWidth: 4),
-                        ],
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.example.mini_strava',
                       ),
-                    if (_current != null)
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: _current!,
-                            width: 40,
-                            height: 40,
-                            child: const Icon(Icons.my_location, size: 32),
-                          ),
-                        ],
-                      ),
-                    if (_isCalibrating || !_gpsLocked)
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(999),
+                      if (_trackPoints.length >= 2)
+                        PolylineLayer(
+                          polylines: [
+                            Polyline(points: _trackPoints, strokeWidth: 4),
+                          ],
+                        ),
+                      if (_current != null)
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: _current!,
+                              width: 40,
+                              height: 40,
+                              child: const Icon(Icons.my_location, size: 32),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text('Kalibracja GPS', style: TextStyle(color: Colors.white)),
-                                ],
+                          ],
+                        ),
+                      if (_isCalibrating || !_gpsLocked)
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text('Kalibracja GPS', style: TextStyle(color: Colors.white)),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -545,7 +590,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            Text(_format(c.elapsed), style: Theme.of(context).textTheme.displaySmall),
+            Text(
+              _format(c.elapsed),
+              style: Theme.of(context).textTheme.displaySmall,
+            ),
             const SizedBox(height: 24),
             Row(
               children: [
@@ -602,12 +650,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
               child: OutlinedButton(
                 onPressed: (isRunning || isPaused)
                     ? () async {
+                  final nav = Navigator.of(context);
+                  final routeImagePath = await _captureRouteImage(context);
+                  if (!mounted) return;
+
                   _stopTracking();
                   _stopAvgSpeedTimer();
+
                   await c.finish(
-                    context,
+                    nav.context,
                     distanceKm: _distanceKm,
-                    track: _trackPoints.map((p) => GpsPoint(lat: p.latitude, lng: p.longitude)).toList(),
+                    track: _trackPoints
+                        .map((p) => GpsPoint(lat: p.latitude, lng: p.longitude))
+                        .toList(),
+                    routeImagePath: routeImagePath,
                   );
                 }
                     : null,

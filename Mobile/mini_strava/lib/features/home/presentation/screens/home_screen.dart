@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:mini_strava/features/profile/presentation/controller/profile_controller.dart';
 import '../widgets/home_app_bar.dart';
-import 'package:mini_strava/theme/app_colors.dart';
 
-
-class HomeScreen extends StatelessWidget {
-
+class HomeScreen extends StatefulWidget {
   final VoidCallback onOpenProfile;
-
-
   final VoidCallback? onOpenFriends;
   final VoidCallback? onOpenInvites;
   final VoidCallback? onOpenRanking;
-
-
-  final String? avatarUrl;
-  final String? initials;
 
   const HomeScreen({
     super.key,
@@ -22,44 +14,72 @@ class HomeScreen extends StatelessWidget {
     this.onOpenFriends,
     this.onOpenInvites,
     this.onOpenRanking,
-    this.avatarUrl,
-    this.initials,
   });
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final ProfileController _profile;
+
+  String? _avatarPathOrUrl;
+  String? _initials;
+
+  @override
+  void initState() {
+    super.initState();
+    _profile = ProfileController();
+    _profile.addListener(_syncFromProfile);
+    _profile.load();
+  }
+
+  void _syncFromProfile() {
+    final avatar = (_profile.avatarPathOrUrl ?? '').trim();
+
+    final fn = _profile.firstName.text.trim();
+    final ln = _profile.lastName.text.trim();
+    final initials =
+    ((fn.isNotEmpty ? fn[0] : '') + (ln.isNotEmpty ? ln[0] : '')).trim();
+
+    if (!mounted) return;
+    setState(() {
+      _avatarPathOrUrl = avatar.isEmpty ? null : avatar;
+      _initials = initials.isEmpty ? 'U' : initials.toUpperCase();
+    });
+  }
+
+  @override
+  void dispose() {
+    _profile.removeListener(_syncFromProfile);
+    _profile.disposeControllers();
+    super.dispose();
+  }
+
+  Future<void> _openProfileAndRefresh() async {
+    // ważne: czekamy aż wrócisz z profilu, a potem odświeżamy dane
+    await Navigator.pushNamed(context, '/profile');
+    if (!mounted) return;
+    await _profile.load();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: HomeAppBar(
-        onOpenFriends: onOpenFriends ?? () {},
-        onOpenInvites: onOpenInvites ?? () {},
-        onOpenProfile: onOpenProfile,
-        avatarUrl: avatarUrl,
-        initials: initials,
+        onOpenRanking: widget.onOpenRanking ?? () {},
+        onOpenFriends: widget.onOpenFriends ?? () {},
+        onOpenInvites: widget.onOpenInvites ?? () {},
+        onOpenProfile: _openProfileAndRefresh,
+        avatarUrl: _avatarPathOrUrl,
+        initials: _initials,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: const Padding(
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ElevatedButton(
-              onPressed: onOpenRanking ?? () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.orange500,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Ranking użytkowników',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+            // Tu potem: feed / ostatnie aktywności / statystyki itd.
           ],
         ),
       ),

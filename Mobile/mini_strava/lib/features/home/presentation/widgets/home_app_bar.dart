@@ -1,15 +1,19 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final VoidCallback onOpenRanking;
   final VoidCallback onOpenFriends;
   final VoidCallback onOpenInvites;
   final VoidCallback onOpenProfile;
+
   final String? avatarUrl;
   final String? initials;
   final int? invitesCount;
 
   const HomeAppBar({
     super.key,
+    required this.onOpenRanking,
     required this.onOpenFriends,
     required this.onOpenInvites,
     required this.onOpenProfile,
@@ -31,30 +35,41 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: barColor,
       centerTitle: false,
       titleSpacing: 12,
-
-
-      title: SizedBox(
-        height: 28,
-        child: Image.asset(
-          'assets/images/logo.png',
-          fit: BoxFit.contain,
-        ),
+      title: Row(
+        children: [
+          Image.asset(
+            'assets/images/logo.png',
+            height: 22, // ⬅️ sensowny rozmiar
+            fit: BoxFit.contain,
+          ),
+        ],
       ),
-
       actions: [
+        /// 🏆 RANKING
+        IconButton(
+          tooltip: 'Ranking użytkowników',
+          onPressed: onOpenRanking,
+          icon: const Icon(Icons.emoji_events_outlined),
+        ),
+
+        /// 👥 ZNAJOMI
         IconButton(
           tooltip: 'Znajomi',
           onPressed: onOpenFriends,
           icon: const Icon(Icons.group_outlined),
         ),
+
+        /// ✉ ZAPROSZENIA
         _IconWithBadge(
           tooltip: 'Zaproszenia',
           onPressed: onOpenInvites,
           icon: Icons.mail_outline,
           count: invitesCount,
         ),
+
+        /// 👤 AVATAR
         Padding(
-          padding: const EdgeInsets.only(right: 10),
+          padding: const EdgeInsets.only(right: 10, left: 4),
           child: _AvatarButton(
             avatarUrl: avatarUrl,
             initials: initials,
@@ -66,6 +81,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+/// ---------- BADGE ----------
 class _IconWithBadge extends StatelessWidget {
   final String tooltip;
   final VoidCallback onPressed;
@@ -81,8 +97,8 @@ class _IconWithBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool show = count != null;
-    final bool showNumber = (count ?? 0) > 0;
+    final show = count != null;
+    final showNumber = (count ?? 0) > 0;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -122,6 +138,7 @@ class _IconWithBadge extends StatelessWidget {
   }
 }
 
+/// ---------- AVATAR ----------
 class _AvatarButton extends StatelessWidget {
   final String? avatarUrl;
   final String? initials;
@@ -135,24 +152,25 @@ class _AvatarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String fallback =
-    (initials == null || initials!.trim().isEmpty)
-        ? 'U'
-        : initials!.trim();
+    final fallback =
+    (initials == null || initials!.trim().isEmpty) ? 'U' : initials!;
+
+    ImageProvider? provider;
+    if (avatarUrl != null && avatarUrl!.isNotEmpty) {
+      provider = avatarUrl!.startsWith('http')
+          ? NetworkImage(avatarUrl!)
+          : FileImage(File(avatarUrl!));
+    }
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
       child: CircleAvatar(
         radius: 18,
-        backgroundColor:
-        Theme.of(context).colorScheme.onPrimary.withAlpha(40),
+        backgroundColor: Colors.white.withAlpha(40),
         foregroundColor: Colors.white,
-        backgroundImage:
-        (avatarUrl != null && avatarUrl!.trim().isNotEmpty)
-            ? NetworkImage(avatarUrl!)
-            : null,
-        child: (avatarUrl == null || avatarUrl!.trim().isEmpty)
+        backgroundImage: provider,
+        child: provider == null
             ? Text(
           fallback.length > 2
               ? fallback.substring(0, 2).toUpperCase()

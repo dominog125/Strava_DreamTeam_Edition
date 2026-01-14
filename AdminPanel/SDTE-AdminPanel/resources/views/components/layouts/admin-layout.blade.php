@@ -1,24 +1,49 @@
-<x-layouts.theme-layout :title="$title ?? 'Panel administratora'">
-    @php
-        $navigationItems = [
-            ['type' => 'link', 'route' => 'administrator.dashboard', 'label' => 'Dashboard', 'abbr' => 'D'],
-            ['type' => 'link', 'route' => 'administrator.users', 'label' => 'Użytkownicy', 'abbr' => 'U'],
-            ['type' => 'link', 'route' => 'administrator.activities', 'label' => 'Aktywności', 'abbr' => 'A'],
-            ['type' => 'logout', 'label' => 'Wyloguj', 'abbr' => 'W'],
-        ];
-    @endphp
+@props([
+    'title' => null,
+])
 
+@php
+    $resolvedTitle = $title ?? __('ui.admin_home_title');
+
+    $navigationItems = [
+        [
+            'type' => 'link',
+            'route' => 'administrator.dashboard',
+            'label' => __('ui.nav_dashboard'),
+            'abbr' => __('ui.nav_dashboard_abbr'),
+        ],
+        [
+            'type' => 'link',
+            'route' => 'administrator.users',
+            'label' => __('ui.nav_users'),
+            'abbr' => __('ui.nav_users_abbr'),
+        ],
+        [
+            'type' => 'link',
+            'route' => 'administrator.activities',
+            'label' => __('ui.nav_activities'),
+            'abbr' => __('ui.nav_activities_abbr'),
+        ],
+        [
+            'type' => 'logout',
+            'label' => __('ui.nav_logout'),
+            'abbr' => __('ui.nav_logout_abbr'),
+        ],
+    ];
+@endphp
+
+<x-layouts.theme-layout :title="$resolvedTitle">
     <div class="min-h-screen">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-4">
             <header>
                 <div class="app-surface app-panel-padding space-y-4">
                     <div class="text-center md:text-left">
                         <div class="app-admin-kicker">
-                            PANEL ADMINISTRATORA
+                            {{ __('ui.admin_panel_kicker') }}
                         </div>
 
                         <div class="app-admin-title">
-                            {{ $title ?? 'Strona główna' }}
+                            {{ $resolvedTitle }}
                         </div>
                     </div>
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,6 +34,31 @@ class Activity extends Model
     public function getRouteKeyName(): string
     {
         return 'uuid';
+    }
+
+    protected function activityTypeLabel(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): string => self::translateActivityType((string) $this->activity_type),
+        );
+    }
+
+    public static function translateActivityType(string $storedValue): string
+    {
+        $normalized = match ($storedValue) {
+            'Spacer' => 'walk',
+            'Bieg' => 'run',
+            'Rower' => 'bike',
+            default => $storedValue,
+        };
+
+        $key = 'activity_types.' . $normalized;
+
+        if (trans()->has($key)) {
+            return __($key);
+        }
+
+        return $storedValue;
     }
 
     public function user(): BelongsTo

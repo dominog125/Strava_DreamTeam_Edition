@@ -6,7 +6,7 @@
 >
     @csrf
 
-    <x-ui.form-group label="Login:" for="login" class="space-y-1.5">
+    <x-ui.form-group :label="__('ui.login') . ':'" for="login" class="space-y-1.5">
         <x-ui.form-input
             id="login"
             name="login"
@@ -20,7 +20,7 @@
         @enderror
     </x-ui.form-group>
 
-    <x-ui.form-group label="Hasło:" for="password" class="space-y-1.5">
+    <x-ui.form-group :label="__('ui.password') . ':'" for="password" class="space-y-1.5">
         <x-ui.form-input
             id="password"
             name="password"
@@ -35,7 +35,7 @@
 
     <div class="pt-4 flex justify-center">
         <x-ui.primary-button type="submit" class="px-8 py-3 text-sm">
-            Zaloguj się
+            {{ __('ui.sign_in') }}
         </x-ui.primary-button>
     </div>
 </form>

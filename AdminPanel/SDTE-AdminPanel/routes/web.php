@@ -6,6 +6,16 @@ use App\Http\Controllers\AdministratorUserController;
 use App\Http\Controllers\AdministratorActivitiesController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/locale/{locale}', function (string $locale) {
+    if (! in_array($locale, ['pl', 'en'], true)) {
+        abort(404);
+    }
+
+    session(['locale' => $locale]);
+
+    return redirect()->back();
+})->name('locale.switch');
+
 Route::redirect('/', '/login');
 
 Route::get('/login', [AuthenticationController::class, 'showLoginForm'])

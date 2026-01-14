@@ -1,8 +1,8 @@
-<x-layouts.admin-layout title="Użytkownicy">
+<x-layouts.admin-layout :title="__('ui.admin_users_title')">
     <div class="space-y-4">
-        <x-admin.section-card title="Filtr użytkowników">
+        <x-admin.section-card :title="__('ui.users_filter_title')">
             <form method="get" class="grid gap-4 md:grid-cols-[2fr_2fr_auto] md:items-end">
-                <x-ui.form-group label="Nazwa użytkownika" for="search_name">
+                <x-ui.form-group :label="__('ui.users_filter_name')" for="search_name">
                     <x-ui.form-input
                         id="search_name"
                         name="search_name"
@@ -11,7 +11,7 @@
                     />
                 </x-ui.form-group>
 
-                <x-ui.form-group label="Email" for="search_email">
+                <x-ui.form-group :label="__('ui.users_filter_email')" for="search_email">
                     <x-ui.form-input
                         id="search_email"
                         name="search_email"
@@ -20,7 +20,7 @@
                     />
                 </x-ui.form-group>
 
-                <x-ui.form-group label="Użytkowników na stronę" for="per_page">
+                <x-ui.form-group :label="__('ui.per_page')" for="per_page">
                     <x-ui.form-select id="per_page" name="per_page">
                         @foreach ([10, 25, 50, 100] as $option)
                             <option value="{{ $option }}" @selected($perPage === $option)>
@@ -32,16 +32,16 @@
 
                 <div class="md:col-span-3 flex md:justify-end pt-1">
                     <x-ui.primary-button type="submit" class="w-full md:w-auto px-5 py-2 text-xs">
-                        Zastosuj filtr
+                        {{ __('ui.apply_filter') }}
                     </x-ui.primary-button>
                 </div>
             </form>
         </x-admin.section-card>
 
-        <x-admin.section-card title="Lista użytkowników">
+        <x-admin.section-card :title="__('ui.users_list_title')">
             @if ($users->isEmpty())
                 <p class="app-text-muted">
-                    Brak użytkowników dla wybranych filtrów.
+                    {{ __('ui.no_users_message') }}
                 </p>
             @else
                 <div class="space-y-2 md:hidden">
@@ -55,19 +55,19 @@
                         <thead>
                             <tr>
                                 <x-admin.users.header-cell>
-                                    Nazwa użytkownika
+                                    {{ __('ui.user_name') }}
                                 </x-admin.users.header-cell>
                                 <x-admin.users.header-cell>
-                                    Email
+                                    {{ __('ui.email') }}
                                 </x-admin.users.header-cell>
                                 <x-admin.users.header-cell>
-                                    Data utworzenia
+                                    {{ __('ui.created_at') }}
                                 </x-admin.users.header-cell>
                                 <x-admin.users.header-cell align="center">
-                                    Discord?
+                                    {{ __('ui.discord_connected') }}
                                 </x-admin.users.header-cell>
                                 <x-admin.users.header-cell align="center">
-                                    Google?
+                                    {{ __('ui.google_connected') }}
                                 </x-admin.users.header-cell>
                             </tr>
                         </thead>
@@ -87,11 +87,11 @@
                                     </x-admin.users.cell>
 
                                     <x-admin.users.cell align="center">
-                                        {{ $user->is_discord_connected ? 'Tak' : 'Nie' }}
+                                        {{ $user->is_discord_connected ? __('ui.yes') : __('ui.no') }}
                                     </x-admin.users.cell>
 
                                     <x-admin.users.cell align="center" rounded="right">
-                                        {{ $user->is_google_connected ? 'Tak' : 'Nie' }}
+                                        {{ $user->is_google_connected ? __('ui.yes') : __('ui.no') }}
                                     </x-admin.users.cell>
                                 </tr>
                             @endforeach

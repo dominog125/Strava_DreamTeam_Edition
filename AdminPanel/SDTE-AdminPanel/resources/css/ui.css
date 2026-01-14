@@ -133,4 +133,22 @@
       px-4 py-3 text-sm
       text-gray-900 dark:text-gray-100;
   }
+  
+  .app-lang-button {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-full transition;
+  }
+
+  .app-lang-button-active {
+    @apply bg-gray-50/95 dark:bg-gray-800/95
+      ring-2 ring-orange-400
+      ring-offset-2 ring-offset-gray-200 dark:ring-offset-gray-900;
+  }
+
+  .app-lang-button-inactive {
+    @apply bg-transparent opacity-80 hover:opacity-100;
+  }
+
+  .app-lang-flag {
+    @apply h-7 w-7 rounded-full;
+  }
 }

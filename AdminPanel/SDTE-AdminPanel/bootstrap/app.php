@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdministratorAuthorizationMiddleware;
+use App\Http\Middleware\SetLocaleFromSession;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,7 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'administrator' => AdministratorAuthorizationMiddleware::class,
         ]);
+
+        $middleware->web(append: [
+            SetLocaleFromSession::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
+    })
+    ->create();

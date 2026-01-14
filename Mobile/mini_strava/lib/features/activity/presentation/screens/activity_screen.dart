@@ -8,12 +8,10 @@ import 'package:latlong2/latlong.dart';
 
 import '../controller/activity_controller.dart';
 import '../../domain/entities/activity.dart' as act;
-
 import '../../../activity_history/domain/entities/gps_point.dart';
 
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
-
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
 }
@@ -29,17 +27,17 @@ class _ActivityScreenState extends State<ActivityScreen> {
   String? _locError;
   bool _locLoading = true;
 
-
   StreamSubscription<geo.Position>? _posSub;
   LatLng? _lastForDistance;
+
   double _distanceKm = 0.0;
-
-
   final List<LatLng> _trackPoints = [];
-
 
   bool _followUser = false;
   DateTime _lastAutoMove = DateTime.fromMillisecondsSinceEpoch(0);
+
+  Timer? _avgSpeedTimer;
+  double _avgSpeedKmH = 0.0;
 
   @override
   void initState() {
@@ -55,6 +53,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   @override
   void dispose() {
+    _avgSpeedTimer?.cancel();
     _posSub?.cancel();
     c.removeListener(_onChanged);
     c.dispose();
@@ -131,10 +130,32 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
     if (isRunning) {
       _startTracking();
+      _startAvgSpeedTimer();
       if (_current != null) _autoFollowIfNeeded(_current!, force: true);
     } else {
       _stopTracking();
+      _stopAvgSpeedTimer();
     }
+  }
+
+  void _startAvgSpeedTimer() {
+    if (_avgSpeedTimer != null) return;
+    _avgSpeedTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted) return;
+      final seconds = c.elapsed.inSeconds;
+      if (seconds <= 0 || _distanceKm <= 0.001) {
+        setState(() => _avgSpeedKmH = 0.0);
+        return;
+      }
+      final hours = seconds / 3600.0;
+      final v = _distanceKm / hours;
+      setState(() => _avgSpeedKmH = v.isFinite ? v : 0.0);
+    });
+  }
+
+  void _stopAvgSpeedTimer() {
+    _avgSpeedTimer?.cancel();
+    _avgSpeedTimer = null;
   }
 
   void _startTracking() {
@@ -162,8 +183,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
           if (prev != null) {
             final meters = _haversineMeters(prev, ll);
-
-
             if (meters >= 0.5 && meters <= 120) {
               _distanceKm += meters / 1000.0;
 
@@ -246,12 +265,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   String _formatPace() {
-    if (_distanceKm <= 0.01) return '--:-- /km';
+    if (_distanceKm <= 0.01) return '--:-- min/km';
     final minutes = c.elapsed.inSeconds / 60.0;
     final pace = minutes / _distanceKm;
     final paceMin = pace.floor();
     final paceSec = ((pace - paceMin) * 60).round().clamp(0, 59);
-    return '${paceMin.toString().padLeft(2, '0')}:${paceSec.toString().padLeft(2, '0')} /km';
+    return '${paceMin.toString().padLeft(2, '0')}:${paceSec.toString().padLeft(2, '0')} min/km';
+  }
+
+  String _formatSpeed() {
+    final seconds = c.elapsed.inSeconds;
+    if (seconds <= 0 || _distanceKm <= 0.001) return '0.0 km/h';
+    final hours = seconds / 3600.0;
+    final v = _distanceKm / hours;
+    return '${(v.isFinite ? v : 0.0).toStringAsFixed(1)} km/h';
   }
 
   @override
@@ -317,10 +344,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     if (_trackPoints.length >= 2)
                       PolylineLayer(
                         polylines: [
-                          Polyline(
-                            points: _trackPoints,
-                            strokeWidth: 4,
-                          ),
+                          Polyline(points: _trackPoints, strokeWidth: 4),
                         ],
                       ),
                     if (_current != null)
@@ -339,7 +363,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
             DropdownButtonFormField<act.ActivityType>(
               initialValue: c.type,
               decoration: const InputDecoration(labelText: 'Typ aktywności'),
@@ -350,19 +373,29 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ],
               onChanged: isIdle ? (v) => c.setType(v ?? act.ActivityType.run) : null,
             ),
-
             const SizedBox(height: 12),
-
             Row(
               children: [
                 Expanded(
                   child: _MetricCard(
                     label: 'Tempo',
                     value: _formatPace(),
-                    icon: Icons.speed,
+                    icon: Icons.av_timer,
                   ),
                 ),
                 const SizedBox(width: 12),
+                Expanded(
+                  child: _MetricCard(
+                    label: 'Prędkość',
+                    value: _formatSpeed(),
+                    icon: Icons.speed,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
                 Expanded(
                   child: _MetricCard(
                     label: 'Dystans',
@@ -370,14 +403,19 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     icon: Icons.route,
                   ),
                 ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _MetricCard(
+                    label: 'Śr. prędkość',
+                    value: '${_avgSpeedKmH.toStringAsFixed(1)} km/h',
+                    icon: Icons.speed_outlined,
+                  ),
+                ),
               ],
             ),
-
             const SizedBox(height: 24),
-
             Text(_format(c.elapsed), style: Theme.of(context).textTheme.displaySmall),
             const SizedBox(height: 24),
-
             Row(
               children: [
                 Expanded(
@@ -385,13 +423,12 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     onPressed: isIdle
                         ? () {
                       _distanceKm = 0.0;
+                      _avgSpeedKmH = 0.0;
                       _lastForDistance = null;
                       _trackPoints.clear();
                       if (_current != null) _trackPoints.add(_current!);
-
                       c.start();
                       if (_current != null) _autoFollowIfNeeded(_current!, force: true);
-
                       setState(() {});
                     }
                         : null,
@@ -407,16 +444,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: (isRunning || isPaused)
                     ? () async {
                   _stopTracking();
-
+                  _stopAvgSpeedTimer();
                   await c.finish(
                     context,
                     distanceKm: _distanceKm,

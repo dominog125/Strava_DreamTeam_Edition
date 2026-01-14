@@ -43,9 +43,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       );
       if (xfile == null) return;
 
-      // ✅ zapisujemy ścieżkę avatara w profilu
+
       setState(() {
-        c.avatarPathOrUrl = xfile.path; // <- upewnij się, że to pole istnieje w controllerze
+        c.avatarPathOrUrl = xfile.path;
       });
     } catch (e) {
       if (!mounted) return;
@@ -78,7 +78,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           key: c.formKey,
           child: ListView(
             children: [
-              // ✅ AVATAR
+
               Card(
                 elevation: 1,
                 child: Padding(

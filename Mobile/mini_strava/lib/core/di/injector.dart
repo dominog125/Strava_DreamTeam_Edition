@@ -138,8 +138,6 @@ void setupInjector(SharedPreferences prefs) {
   sl.registerLazySingleton(() => GetActivityDetailsUseCase(sl<ActivityHistoryRepository>()));
   sl.registerLazySingleton(() => AddManualActivityUseCase(sl<ActivityHistoryRepositoryImpl>()));
   sl.registerLazySingleton(() => UpdateActivityMetaUseCase(sl<ActivityHistoryRepositoryImpl>()));
-
-  // stats do profilu (liczone z historii)
   sl.registerLazySingleton(() => GetUserStatsUseCase(sl<GetActivityHistoryUseCase>()));
 
 }

@@ -45,6 +45,11 @@ import 'package:mini_strava/features/activity_history/domain/usecases/add_manual
 import 'package:mini_strava/features/activity_history/domain/usecases/get_user_stats_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/usecases/update_activity_meta_usecase.dart';
 
+//FRIENDS
+import 'package:mini_strava/features/friends/data/datasources/friends_remote_data_source.dart';
+import 'package:mini_strava/features/friends/domain/repositories/friends_repository_impl.dart';
+import 'package:mini_strava/features/friends/domain/repositories/friends_repository.dart';
+import 'package:mini_strava/features/friends/domain/usecases/get_friends_usecase.dart';
 final sl = GetIt.instance;
 
 void setupInjector(SharedPreferences prefs) {
@@ -53,7 +58,8 @@ void setupInjector(SharedPreferences prefs) {
   // ---------- CORE ----------
   sl.registerLazySingleton<SharedPreferences>(() => prefs);
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
-  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl<Connectivity>()));
+  sl.registerLazySingleton<NetworkInfo>(() =>
+      NetworkInfoImpl(sl<Connectivity>()));
   sl.registerSingleton<AuthSession>(AuthSession(prefs));
 
   // ---------- NETWORK ----------
@@ -66,9 +72,10 @@ void setupInjector(SharedPreferences prefs) {
   );
 
   sl.registerLazySingleton<AuthLocalDataSource>(
-        () => AuthLocalDataSourceImpl(
-      sl<Box<AuthTokensModel>>(instanceName: 'authTokensBox'),
-    ),
+        () =>
+        AuthLocalDataSourceImpl(
+          sl<Box<AuthTokensModel>>(instanceName: 'authTokensBox'),
+        ),
   );
 
   sl.registerLazySingleton<AuthRemoteDataSource>(
@@ -76,10 +83,11 @@ void setupInjector(SharedPreferences prefs) {
   );
 
   sl.registerLazySingleton<AuthRepository>(
-        () => AuthRepositoryImpl(
-      sl<AuthRemoteDataSource>(),
-      sl<AuthLocalDataSource>(),
-    ),
+        () =>
+        AuthRepositoryImpl(
+          sl<AuthRemoteDataSource>(),
+          sl<AuthLocalDataSource>(),
+        ),
   );
 
   sl.registerLazySingleton(() => LoginUseCase(sl<AuthRepository>()));
@@ -98,11 +106,12 @@ void setupInjector(SharedPreferences prefs) {
 
   // WAŻNE: kolejność konstruktora jak w Twoim poprawionym repo: (local, remote, network)
   sl.registerLazySingleton<ProfileRepository>(
-        () => ProfileRepositoryImpl(
-      sl<ProfileLocalDataSource>(),
-      sl<ProfileRemoteDataSource>(),
-      sl<NetworkInfo>(),
-    ),
+        () =>
+        ProfileRepositoryImpl(
+          sl<ProfileLocalDataSource>(),
+          sl<ProfileRemoteDataSource>(),
+          sl<NetworkInfo>(),
+        ),
   );
 
   sl.registerLazySingleton(() => GetProfileUseCase(sl<ProfileRepository>()));
@@ -115,9 +124,10 @@ void setupInjector(SharedPreferences prefs) {
   );
 
   sl.registerLazySingleton<ActivityLocalDataSource>(
-        () => ActivityLocalDataSourceImpl(
-      sl<Box<ActivityModel>>(instanceName: 'activitiesBox'),
-    ),
+        () =>
+        ActivityLocalDataSourceImpl(
+          sl<Box<ActivityModel>>(instanceName: 'activitiesBox'),
+        ),
   );
 
   sl.registerLazySingleton<ActivityRepository>(
@@ -133,22 +143,40 @@ void setupInjector(SharedPreferences prefs) {
   );
 
   sl.registerLazySingleton<ActivityHistoryLocalDataSource>(
-        () => ActivityHistoryLocalDataSourceImpl(
-      sl<Box<ActivityHistoryHiveModel>>(instanceName: 'activityHistoryBox'),
-    ),
+        () =>
+        ActivityHistoryLocalDataSourceImpl(
+          sl<Box<ActivityHistoryHiveModel>>(instanceName: 'activityHistoryBox'),
+        ),
   );
 
   sl.registerLazySingleton<ActivityHistoryRepositoryImpl>(
-        () => ActivityHistoryRepositoryImpl(sl<ActivityHistoryLocalDataSource>()),
+        () =>
+        ActivityHistoryRepositoryImpl(sl<ActivityHistoryLocalDataSource>()),
   );
 
   sl.registerLazySingleton<ActivityHistoryRepository>(
         () => sl<ActivityHistoryRepositoryImpl>(),
   );
 
-  sl.registerLazySingleton(() => GetActivityHistoryUseCase(sl<ActivityHistoryRepository>()));
-  sl.registerLazySingleton(() => GetActivityDetailsUseCase(sl<ActivityHistoryRepository>()));
-  sl.registerLazySingleton(() => AddManualActivityUseCase(sl<ActivityHistoryRepositoryImpl>()));
-  sl.registerLazySingleton(() => UpdateActivityMetaUseCase(sl<ActivityHistoryRepositoryImpl>()));
-  sl.registerLazySingleton(() => GetUserStatsUseCase(sl<GetActivityHistoryUseCase>()));
+  sl.registerLazySingleton(() =>
+      GetActivityHistoryUseCase(sl<ActivityHistoryRepository>()));
+  sl.registerLazySingleton(() =>
+      GetActivityDetailsUseCase(sl<ActivityHistoryRepository>()));
+  sl.registerLazySingleton(() =>
+      AddManualActivityUseCase(sl<ActivityHistoryRepositoryImpl>()));
+  sl.registerLazySingleton(() =>
+      UpdateActivityMetaUseCase(sl<ActivityHistoryRepositoryImpl>()));
+  sl.registerLazySingleton(() =>
+      GetUserStatsUseCase(sl<GetActivityHistoryUseCase>()));
+
+// ---------- FRIENDS ----------
+  sl.registerLazySingleton<FriendsRemoteDataSource>(
+        () => FriendsRemoteDataSource(sl<ApiClient>().dio),
+  );
+
+  sl.registerLazySingleton<FriendsRepository>(
+        () => FriendsRepositoryImpl(sl<FriendsRemoteDataSource>()),
+  );
+
+  sl.registerLazySingleton(() => GetFriendsUseCase(sl<FriendsRepository>()));
 }

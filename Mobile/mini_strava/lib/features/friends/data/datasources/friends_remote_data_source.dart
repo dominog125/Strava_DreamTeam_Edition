@@ -19,4 +19,8 @@ class FriendsRemoteDataSource {
 
     throw Exception('Nieprawidłowa odpowiedź API /friends: $data');
   }
+  Future<void> deleteFriend(String otherUserId) async {
+    await dio.delete(Endpoints.friendDelete(otherUserId));
+  }
+
 }

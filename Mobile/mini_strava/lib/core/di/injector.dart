@@ -50,6 +50,8 @@ import 'package:mini_strava/features/friends/data/datasources/friends_remote_dat
 import 'package:mini_strava/features/friends/domain/repositories/friends_repository_impl.dart';
 import 'package:mini_strava/features/friends/domain/repositories/friends_repository.dart';
 import 'package:mini_strava/features/friends/domain/usecases/get_friends_usecase.dart';
+import 'package:mini_strava/features/friends/domain/usecases/delete_friend_usecase.dart';
+
 final sl = GetIt.instance;
 
 void setupInjector(SharedPreferences prefs) {
@@ -104,7 +106,7 @@ void setupInjector(SharedPreferences prefs) {
         () => ProfileRemoteDataSource(sl<ApiClient>().dio),
   );
 
-  // WAŻNE: kolejność konstruktora jak w Twoim poprawionym repo: (local, remote, network)
+
   sl.registerLazySingleton<ProfileRepository>(
         () =>
         ProfileRepositoryImpl(
@@ -179,4 +181,5 @@ void setupInjector(SharedPreferences prefs) {
   );
 
   sl.registerLazySingleton(() => GetFriendsUseCase(sl<FriendsRepository>()));
+  sl.registerLazySingleton(() => DeleteFriendUseCase(sl<FriendsRepository>()));
 }

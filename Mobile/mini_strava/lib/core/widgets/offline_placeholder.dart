@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:mini_strava/core/navigation/app_routes.dart';
@@ -8,10 +7,14 @@ class OfflinePlaceholder extends StatefulWidget {
   final String message;
   final String? subtitle;
 
+
+  final Future<void> Function()? onRetry;
+
   const OfflinePlaceholder({
     super.key,
     this.message = 'Nie załadowano strony',
     this.subtitle,
+    this.onRetry,
   });
 
   @override
@@ -57,6 +60,13 @@ class _OfflinePlaceholderState extends State<OfflinePlaceholder> {
     });
   }
 
+  Future<void> _retry() async {
+
+    await _checkInternet();
+
+    await widget.onRetry?.call();
+  }
+
   void _goBack(BuildContext context) {
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
@@ -68,9 +78,7 @@ class _OfflinePlaceholderState extends State<OfflinePlaceholder> {
   @override
   Widget build(BuildContext context) {
     final subtitle = widget.subtitle ??
-        (_hasInternet
-            ? 'Sprawdź połączenie z internetem.'
-            : 'Brak połączenia z internetem.');
+        (_hasInternet ? 'Sprawdź połączenie z internetem.' : 'Brak połączenia z internetem.');
 
     return Scaffold(
       appBar: AppBar(
@@ -103,7 +111,7 @@ class _OfflinePlaceholderState extends State<OfflinePlaceholder> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _checkInternet,
+                onPressed: _retry,
                 child: const Text('Spróbuj ponownie'),
               ),
             ],

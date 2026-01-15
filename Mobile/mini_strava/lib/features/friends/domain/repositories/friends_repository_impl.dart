@@ -10,4 +10,8 @@ class FriendsRepositoryImpl implements FriendsRepository {
   Future<List<Friend>> getFriends() async {
     return await remote.getFriends();
   }
+  @override
+  Future<void> deleteFriend(String otherUserId) async {
+    await remote.deleteFriend(otherUserId);
+  }
 }

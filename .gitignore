@@ -1,6 +1,9 @@
+
 ﻿################################################################################
 # Ten plik .gitignore został utworzony automatycznie przez Microsoft(R) Visual Studio.
 ################################################################################
 
 /API/Strava_DreamTeam_Edition_API/Migrations
 /API/Strava_DreamTeam_Edition_API/appsettings.json
+/AdminPanel/SDTE-AdminPanel/nbproject/private/
+

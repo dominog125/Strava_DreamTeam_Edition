@@ -15,11 +15,15 @@ class AdministratorDashboardController extends Controller
 
     public function index(): View
     {
-        $administrator = Auth::user();
+        $administratorUsername = match (config('administration.auth_mode')) {
+            'auth' => (string) (Auth::user()?->name ?? Auth::user()?->email ?? ''),
+            default => (string) session('administrator.username', ''),
+        };
+
         $statistics = $this->administratorDashboardStatisticsReader->read();
 
         return view('admin.dashboard', [
-            'administrator' => $administrator,
+            'administratorUsername' => $administratorUsername,
             'userCount' => $statistics->userCount,
             'activityCount' => $statistics->activityCount,
             'totalDistanceKilometers' => $statistics->totalDistanceKilometers,

@@ -40,12 +40,28 @@ class AuthenticationController extends Controller
 
         $request->session()->regenerate();
 
+        if (config('administration.auth_mode') === 'jwt') {
+            if ($result->jwtToken === null) {
+                return back()
+                    ->withErrors(['password' => 'Brak tokenu JWT w odpowiedzi z API'])
+                    ->onlyInput('login');
+            }
+
+            $request->session()->put('administrator.jwt', $result->jwtToken);
+            $request->session()->put('administrator.username', $result->username ?? $validated['login']);
+        }
+
         return redirect()->route('administrator.dashboard');
     }
 
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
+
+        $request->session()->forget([
+            'administrator.jwt',
+            'administrator.username',
+        ]);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

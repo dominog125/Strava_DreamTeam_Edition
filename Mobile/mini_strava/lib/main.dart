@@ -8,11 +8,16 @@ import 'package:mini_strava/features/activity_history/data/models/activity_histo
 
 import 'package:mini_strava/core/di/injector.dart';
 import 'package:mini_strava/app.dart';
+import 'package:flutter/services.dart';
 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
 
   // AUTH TOKENS
   Hive.registerAdapter(AuthTokensModelAdapter());

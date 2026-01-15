@@ -44,7 +44,7 @@ class FriendsController extends ChangeNotifier {
       _setLoading(false);
     }
   }
-  
+
   void _setLoading(bool v) {
     _loading = v;
     notifyListeners();

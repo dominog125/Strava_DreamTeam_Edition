@@ -8,7 +8,6 @@ import '../models/activity_history_hive_model.dart';
 
 class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
   final ActivityHistoryLocalDataSource local;
-
   ActivityHistoryRepositoryImpl(this.local);
 
   @override
@@ -21,6 +20,7 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
   Future<ActivityDetails> getById(String id) async {
     final all = await local.getAll();
     final found = all.firstWhere((e) => e.id == id);
+
     final gps = (found.track ?? const <List<double>>[])
         .where((p) => p.length >= 2)
         .map((p) => GpsPoint(lat: p[0], lng: p[1]))
@@ -66,6 +66,7 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
     await local.upsert(model);
   }
 
+
   Future<void> addFromActivity({
     required DateTime date,
     required ActivityType type,
@@ -73,6 +74,10 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
     required double distanceKm,
     required List<GpsPoint> track,
     String? routeImagePath,
+
+    String? title,
+    String? note,
+    String? photoPath,
   }) async {
     final minutes = duration.inSeconds / 60.0;
     final pace = distanceKm > 0 ? minutes / distanceKm : 0.0;
@@ -80,6 +85,11 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
 
     final nowIso = DateTime.now().toIso8601String();
     final id = DateTime.now().millisecondsSinceEpoch.toString();
+
+    final cleanTitle = (title ?? '').trim().isEmpty ? null : title!.trim();
+    final cleanNote = (note ?? '').trim().isEmpty ? null : note!.trim();
+    final cleanPhoto = (photoPath ?? '').trim().isEmpty ? null : photoPath!.trim();
+    final cleanRoute = (routeImagePath ?? '').trim().isEmpty ? null : routeImagePath!.trim();
 
     final model = ActivityHistoryHiveModel(
       id: id,
@@ -92,11 +102,13 @@ class ActivityHistoryRepositoryImpl implements ActivityHistoryRepository {
       syncStatus: SyncStatus.pending,
       createdAtIso: nowIso,
       updatedAtIso: nowIso,
-      title: null,
-      note: null,
-      photoPath: null,
+
+      title: cleanTitle,
+      note: cleanNote,
+      photoPath: cleanPhoto,
+
       track: track.map((p) => [p.lat, p.lng]).toList(),
-      routeImagePath: routeImagePath,
+      routeImagePath: cleanRoute,
     );
 
     await local.upsert(model);

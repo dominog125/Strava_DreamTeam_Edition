@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/di/injector.dart';
-
 import '../../domain/entities/activity.dart' as act;
 import '../../domain/usecases/save_activity_usecase.dart';
-
 import '../../../activity_history/data/repositories/activity_history_repository_impl.dart';
 import '../../../activity_history/domain/entities/activity_type.dart' as hist;
 import '../../../activity_history/domain/entities/gps_point.dart';
@@ -13,8 +11,7 @@ enum ActivityState { idle, running, paused, finished }
 
 class ActivityController extends ChangeNotifier {
   final SaveActivityUseCase _save = sl<SaveActivityUseCase>();
-  final ActivityHistoryRepositoryImpl _history =
-  sl<ActivityHistoryRepositoryImpl>();
+  final ActivityHistoryRepositoryImpl _history = sl<ActivityHistoryRepositoryImpl>();
 
   act.ActivityType type = act.ActivityType.run;
   ActivityState state = ActivityState.idle;
@@ -25,6 +22,7 @@ class ActivityController extends ChangeNotifier {
   DateTime? _lastTick;
 
   Duration get elapsed => _elapsed;
+  DateTime? get startedAt => _startedAt;
 
   void setType(act.ActivityType t) {
     if (state != ActivityState.idle) return;
@@ -44,12 +42,10 @@ class ActivityController extends ChangeNotifier {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (state != ActivityState.running) return;
-
       final now = DateTime.now();
       final delta = now.difference(_lastTick!);
       _elapsed += delta;
       _lastTick = now;
-
       notifyListeners();
     });
 
@@ -69,7 +65,7 @@ class ActivityController extends ChangeNotifier {
     notifyListeners();
   }
 
-  hist.ActivityType _mapToHistoryType(act.ActivityType t) {
+  hist.ActivityType mapToHistoryType(act.ActivityType t) {
     switch (t) {
       case act.ActivityType.run:
         return hist.ActivityType.run;
@@ -85,6 +81,11 @@ class ActivityController extends ChangeNotifier {
         required double distanceKm,
         required List<GpsPoint> track,
         String? routeImagePath,
+
+        String? title,
+        String? note,
+        String? photoPath,
+        hist.ActivityType? overrideType,
       }) async {
     if (state == ActivityState.idle) return;
 
@@ -107,11 +108,14 @@ class ActivityController extends ChangeNotifier {
 
     await _history.addFromActivity(
       date: startedAt,
-      type: _mapToHistoryType(type),
+      type: overrideType ?? mapToHistoryType(type),
       duration: _elapsed,
       distanceKm: distanceKm,
       track: track,
       routeImagePath: routeImagePath,
+      title: title,
+      note: note,
+      photoPath: photoPath,
     );
 
     if (!context.mounted) return;
@@ -123,7 +127,6 @@ class ActivityController extends ChangeNotifier {
     state = ActivityState.idle;
     _startedAt = null;
     _elapsed = Duration.zero;
-
     notifyListeners();
   }
 

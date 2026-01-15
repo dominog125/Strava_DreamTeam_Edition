@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openProfileAndRefresh() async {
-    // ważne: czekamy aż wrócisz z profilu, a potem odświeżamy dane
+
     await Navigator.pushNamed(context, '/profile');
     if (!mounted) return;
     await _profile.load();
@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Tu potem: feed / ostatnie aktywności / statystyki itd.
+
           ],
         ),
       ),

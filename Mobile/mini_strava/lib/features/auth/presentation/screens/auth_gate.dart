@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mini_strava/core/di/injector.dart';
+import 'package:mini_strava/core/navigation/app_routes.dart';
 import 'package:mini_strava/features/auth/domain/usecases/get_cached_tokens_usecase.dart';
+import 'package:mini_strava/features/home/presentation/screens/home_screen.dart';
 
 import 'login_screen.dart';
-import '../../../profile/presentation/screens/profile_screen.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -13,7 +14,6 @@ class AuthGate extends StatelessWidget {
     return FutureBuilder(
       future: sl<GetCachedTokensUseCase>()(),
       builder: (context, snapshot) {
-
         if (snapshot.connectionState != ConnectionState.done) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -21,8 +21,14 @@ class AuthGate extends StatelessWidget {
         }
 
         final tokens = snapshot.data;
+
         if (tokens != null) {
-          return const ProfileScreen();
+          return HomeScreen(
+            onOpenProfile: () => Navigator.pushNamed(context, AppRoutes.profile),
+            onOpenFriends: () => Navigator.pushNamed(context, AppRoutes.friends),
+            onOpenInvites: () => Navigator.pushNamed(context, AppRoutes.invites),
+            onOpenRanking: () => Navigator.pushNamed(context, AppRoutes.ranking),
+          );
         }
 
         return const LoginScreen();

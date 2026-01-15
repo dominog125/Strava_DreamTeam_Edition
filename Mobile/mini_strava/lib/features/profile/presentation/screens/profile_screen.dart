@@ -15,6 +15,7 @@ import '../controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -66,7 +67,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _stats = const UserStats(workoutsCount: 0, totalDistanceKm: 0, avgSpeedKmH: 0);
+        _stats = const UserStats(
+          workoutsCount: 0,
+          totalDistanceKm: 0,
+          avgSpeedKmH: 0,
+        );
         _statsLoading = false;
       });
     }
@@ -85,6 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final birthDateText =
     c.birthDate == null ? '-' : DateFormat('yyyy-MM-dd').format(c.birthDate!);
+
     final fullName = '${c.firstName.text} ${c.lastName.text}'.trim();
     final heightText = _withUnitOrDash(c.heightCm.text, 'cm');
     final weightText = _withUnitOrDash(c.weightKg.text, 'kg');
@@ -136,8 +142,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 24),
-
-
             CircleAvatar(
               radius: 48,
               backgroundImage: avatarProvider,
@@ -145,7 +149,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ? const Icon(Icons.person, size: 48)
                   : null,
             ),
-
             const SizedBox(height: 16),
             Text(
               fullName.isEmpty ? 'Brak danych' : fullName,
@@ -153,6 +156,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
+
             if (_statsLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
@@ -162,17 +166,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _StatTile(label: 'Treningi', value: workouts.toString()),
-                  _StatTile(label: 'Dystans', value: '${totalDist.toStringAsFixed(1)} km'),
-                  _StatTile(label: 'Śr. prędkość', value: '${avgSpeed.toStringAsFixed(1)} km/h'),
+                  _StatTile(
+                    value: workouts.toString(),
+                    label: 'Treningi',
+                    icon: Icons.fitness_center,
+                  ),
+                  _StatTile(
+                    value: '${totalDist.toStringAsFixed(1)} km',
+                    label: 'Dystans',
+                    icon: Icons.route,
+                  ),
+                  _StatTile(
+                    value: '${avgSpeed.toStringAsFixed(1)} km/h',
+                    label: 'Śr. prędkość',
+                    icon: Icons.speed,
+                  ),
                 ],
               ),
+
             const SizedBox(height: 28),
             _InfoRow(label: 'Data urodzenia', value: birthDateText),
             _InfoRow(label: 'Płeć', value: _genderLabel(c.gender)),
             _InfoRow(label: 'Wzrost', value: heightText),
             _InfoRow(label: 'Waga', value: weightText),
             const SizedBox(height: 32),
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -223,6 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
+
   const _InfoRow({required this.label, required this.value});
 
   @override
@@ -232,7 +251,9 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
+          Expanded(
+            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          ),
           const SizedBox(width: 12),
           Text(value, style: Theme.of(context).textTheme.bodyLarge),
         ],
@@ -242,17 +263,36 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _StatTile extends StatelessWidget {
-  final String label;
   final String value;
-  const _StatTile({required this.label, required this.value});
+  final String label;
+  final IconData icon;
+
+  const _StatTile({
+    required this.value,
+    required this.label,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final color = Theme.of(context).textTheme.bodySmall?.color;
+
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(value, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 4),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ],
+        ),
       ],
     );
   }

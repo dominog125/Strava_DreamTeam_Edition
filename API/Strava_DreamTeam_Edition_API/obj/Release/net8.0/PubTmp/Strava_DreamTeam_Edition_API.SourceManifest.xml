@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<sitemanifest>
+  <IisApp path="D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Release\net8.0\PubTmp\Out\" />
+  <dbfullsql path="D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Release\net8.0\PubTmp\EFSQLScripts\Strava_DreamTeam_Edition_API.Data.StravaDreamTeamAuthDbContext.sql" />
+  <dbfullsql path="D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Release\net8.0\PubTmp\EFSQLScripts\Strava_DreamTeam_Edition_API.Data.StravaDreamTeamDbContext.sql" />
+</sitemanifest>

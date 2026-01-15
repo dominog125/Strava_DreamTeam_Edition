@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <parameter name="IIS Web Application Name" description="" value="stravadreamteamedition-euwest-dev-001" tags="IisApp">
+    <parameterEntry kind="ProviderPath" scope="IisApp" match="^D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\obj\\Release\\net8\.0\\PubTmp\\Out\\$" />
+  </parameter>
+  <parameter name="Strava_DreamTeam_Edition_API.Data.StravaDreamTeamAuthDbContext" description="" value="Server=tcp:sqldb-stravadreamteamedition-euwest-dev-001.database.windows.net;Database=sqldb-stravadreamteamedition-euwest-dev-001;Persist Security Info=False;User ID=stravaadmin;Password=D@minik5;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;" tags="dbfullsql">
+    <parameterEntry kind="ProviderPath" scope="dbfullsql" match="^D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\obj\\Release\\net8\.0\\PubTmp\\EFSQLScripts\\Strava_DreamTeam_Edition_API\.Data\.StravaDreamTeamAuthDbContext\.sql$" />
+  </parameter>
+  <parameter name="Strava_DreamTeam_Edition_API.Data.StravaDreamTeamDbContext" description="" value="Server=tcp:sqldb-stravadreamteamedition-euwest-dev-001.database.windows.net;Database=sqldb-stravadreamteamedition-euwest-dev-001;Persist Security Info=False;User ID=stravaadmin;Password=D@minik5;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;" tags="dbfullsql">
+    <parameterEntry kind="ProviderPath" scope="dbfullsql" match="^D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\obj\\Release\\net8\.0\\PubTmp\\EFSQLScripts\\Strava_DreamTeam_Edition_API\.Data\.StravaDreamTeamDbContext\.sql$" />
+  </parameter>
+</parameters>

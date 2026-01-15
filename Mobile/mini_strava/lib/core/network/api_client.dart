@@ -5,17 +5,45 @@ class ApiClient {
   final Dio dio;
 
   ApiClient()
-      : dio = Dio(BaseOptions(
-    // API HERE: baseUrl
-    baseUrl: Endpoints.baseUrl,
+      : dio = Dio(
+    BaseOptions(
+      baseUrl: Endpoints.baseUrl,
+      connectTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: const {'Content-Type': 'application/json'},
+    ),
+  ) {
+    _addInterceptors();
+  }
 
-    // API HERE: timeouty / nagłówki
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-    headers: {'Content-Type': 'application/json'},
-  )) {
-    // TODO(API): opcjonalnie interceptory (token, logi, refresh)
-    // API HERE: interceptory
-    // dio.interceptors.add(...);
+  void _addInterceptors() {
+
+    dio.interceptors.add(
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+      ),
+    );
+
+
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          // TODO: pobierz accessToken z cache (Hive/AuthLocalDataSource/AuthSession itp.)
+          final token = '';
+
+          if (token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          handler.next(options);
+        },
+        onError: (error, handler) async {
+          // TODO(API): później refresh token (401)
+          // if (error.response?.statusCode == 401) { ... }
+          handler.next(error);
+        },
+      ),
+    );
   }
 }

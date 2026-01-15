@@ -1,12 +1,17 @@
 class Endpoints {
-  // TODO(API): Ustaw baseUrl backendu (np. https://example.com)
-  // API HERE: baza serwera
-  static const baseUrl = 'https://TODO_BACKEND_URL';
 
-  // TODO(API): Dopasuj ścieżki pod Swagger/OpenAPI
-  // API HERE: endpointy auth
-  static const login = '/api/auth/login';
-  static const register = '/api/auth/register';
-  static const resetPassword = '/api/auth/reset-password';
+  static const baseUrl =
+      'https://stravadreamteamedition-euwest-dev-001-apd7a9d6g9heeedj.canadacentral-01.azurewebsites.net';
+
+
+
+
+  static const login = '/api/Auth/Login';
+
+
+  static const register = '/api/Auth/Register';
+
+
+  static const resetPassword = '/api/Auth/ResetPassword';
 }
 

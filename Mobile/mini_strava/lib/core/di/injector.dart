@@ -5,12 +5,12 @@ import 'package:hive/hive.dart';
 
 import 'package:mini_strava/core/auth/auth_session.dart';
 import 'package:mini_strava/core/network/network_info.dart';
+import 'package:mini_strava/core/network/api_client.dart';
 
 // AUTH
 import 'package:mini_strava/features/auth/data/models/auth_tokens_model.dart';
 import 'package:mini_strava/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:mini_strava/features/auth/data/datasources/auth_remote_data_source.dart';
-import 'package:mini_strava/features/auth/data/datasources/auth_remote_fake_data_source.dart';
 import 'package:mini_strava/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:mini_strava/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mini_strava/features/auth/domain/usecases/login_usecase.dart';
@@ -54,23 +54,32 @@ void setupInjector(SharedPreferences prefs) {
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl<Connectivity>()));
   sl.registerSingleton<AuthSession>(AuthSession(prefs));
 
-  // ---------- AUTH (fake) ----------
+  // ---------- NETWORK ----------
+  sl.registerLazySingleton<ApiClient>(() => ApiClient());
+
+  // ---------- AUTH (REAL API) ----------
   sl.registerLazySingleton<Box<AuthTokensModel>>(
         () => Hive.box<AuthTokensModel>('auth_tokens'),
     instanceName: 'authTokensBox',
   );
+
   sl.registerLazySingleton<AuthLocalDataSource>(
         () => AuthLocalDataSourceImpl(
       sl<Box<AuthTokensModel>>(instanceName: 'authTokensBox'),
     ),
   );
-  sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteFakeDataSource());
+
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+        () => AuthRemoteDataSource(sl<ApiClient>().dio),
+  );
+
   sl.registerLazySingleton<AuthRepository>(
         () => AuthRepositoryImpl(
       sl<AuthRemoteDataSource>(),
       sl<AuthLocalDataSource>(),
     ),
   );
+
   sl.registerLazySingleton(() => LoginUseCase(sl<AuthRepository>()));
   sl.registerLazySingleton(() => LogoutUseCase(sl<AuthRepository>()));
   sl.registerLazySingleton(() => GetCachedTokensUseCase(sl<AuthRepository>()));
@@ -110,6 +119,7 @@ void setupInjector(SharedPreferences prefs) {
       sl<Box<ActivityHistoryHiveModel>>(instanceName: 'activityHistoryBox'),
     ),
   );
+
   sl.registerLazySingleton<ActivityHistoryRepositoryImpl>(
         () => ActivityHistoryRepositoryImpl(sl<ActivityHistoryLocalDataSource>()),
   );

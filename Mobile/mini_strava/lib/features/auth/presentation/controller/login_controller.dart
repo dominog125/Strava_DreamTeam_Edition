@@ -1,70 +1,63 @@
 import 'package:flutter/material.dart';
-import '../../../../core/di/injector.dart';
-import '../../../../core/navigation/app_routes.dart';
-import '../../../../core/auth/auth_session.dart';
-import '../../domain/usecases/login_usecase.dart';
+import 'package:mini_strava/core/di/injector.dart';
+import 'package:mini_strava/core/navigation/app_routes.dart';
+import 'package:mini_strava/features/auth/domain/usecases/login_usecase.dart';
 
 class LoginController extends ChangeNotifier {
   final formKey = GlobalKey<FormState>();
+
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  final LoginUseCase _loginUseCase = sl<LoginUseCase>();
-  final AuthSession _session = sl<AuthSession>();
+  bool isLoading = false;
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
+  String? validateEmail(String? v) {
+    final s = (v ?? '').trim();
+    if (s.isEmpty) return 'Podaj email';
+    if (!s.contains('@')) return 'Nieprawidłowy email';
+    return null;
+  }
+
+  String? validatePassword(String? v) {
+    final s = (v ?? '').trim();
+    if (s.isEmpty) return 'Podaj hasło';
+    if (s.length < 6) return 'Hasło jest za krótkie';
+    return null;
+  }
 
   void disposeControllers() {
     emailController.dispose();
     passwordController.dispose();
   }
 
-  String? validateEmail(String? v) {
-    final s = (v ?? '').trim();
-    if (s.isEmpty) return 'Wpisz email';
-    if (!s.contains('@') && s != 'admin') return 'Niepoprawny email';
-    return null;
-  }
-
-  String? validatePassword(String? v) {
-    if ((v ?? '').isEmpty) return 'Wpisz hasło';
-    return null;
-  }
-
   Future<void> submit(BuildContext context) async {
-    if (_isLoading) return;
-    if (!(formKey.currentState?.validate() ?? false)) return;
+    if (isLoading) return;
 
-    _setLoading(true);
+    final ok = formKey.currentState?.validate() ?? false;
+    if (!ok) return;
+
+    isLoading = true;
+    notifyListeners();
 
     try {
-      await _loginUseCase(
+      final login = sl<LoginUseCase>();
+
+      await login(
         email: emailController.text.trim(),
         password: passwordController.text,
       );
 
-      await _session.login();
-
       if (!context.mounted) return;
-
-      Navigator.of(context, rootNavigator: true)
-          .pushNamedAndRemoveUntil(
-        AppRoutes.home,
-            (_) => false,
-      );
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
     } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Błędny login lub hasło')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logowanie nieudane: $e')),
+        );
+      }
     } finally {
-      _setLoading(false);
+      isLoading = false;
+      notifyListeners();
     }
-  }
-
-  void _setLoading(bool v) {
-    _isLoading = v;
-    notifyListeners();
   }
 }

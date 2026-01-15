@@ -10,13 +10,39 @@ class AuthRepositoryImpl implements AuthRepository {
 
   AuthRepositoryImpl(this.remote, this.local);
 
+  String _readToken(Map<String, dynamic> json, List<String> keys) {
+    for (final k in keys) {
+      final v = json[k];
+      if (v is String && v.trim().isNotEmpty) return v.trim();
+    }
+    throw Exception('Brak tokena w odpowiedzi API: $json');
+  }
+
   @override
   Future<AuthTokens> login({
     required String email,
     required String password,
   }) async {
-    final tokens = await remote.login(email: email, password: password);
-    await local.saveTokens(AuthTokensModel.fromEntity(tokens));
+    final data = await remote.login(email: email, password: password);
+
+
+    final accessToken = _readToken(data, [
+      'jwtToken',
+      'jwt_token',
+      'accessToken',
+      'access_token',
+      'token',
+      'jwt',
+      'access',
+    ]);
+
+
+    final tokens = AuthTokens(
+      accessToken: accessToken,
+      refreshToken: '',
+    );
+
+    local.saveTokens(AuthTokensModel.fromEntity(tokens));
     return tokens;
   }
 
@@ -25,6 +51,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthTokens?> getCachedTokens() async {
-    return local.getTokens()?.toEntity();
+    final cached = local.getTokens();
+    return cached?.toEntity();
   }
 }

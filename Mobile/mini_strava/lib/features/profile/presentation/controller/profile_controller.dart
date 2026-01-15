@@ -27,20 +27,36 @@ class ProfileController extends ChangeNotifier {
   // ===================== LOAD =====================
   Future<void> load() async {
     _setLoading(true);
+
+
+    final previousAvatar = avatarPathOrUrl;
+
     try {
       final profile = await _getProfile();
       if (profile != null) {
         firstName.text = profile.firstName;
         lastName.text = profile.lastName;
-        heightCm.text = profile.heightCm?.toString() ?? '';
-        weightKg.text = profile.weightKg?.toString() ?? '';
+
+
+        heightCm.text = (profile.heightCm ?? '').toString();
+        if (profile.heightCm == null) heightCm.text = '';
+
+        weightKg.text = (profile.weightKg ?? '').toString();
+        if (profile.weightKg == null) weightKg.text = '';
+
         birthDate = profile.birthDate;
         gender = profile.gender;
 
 
-        avatarPathOrUrl = (profile.avatarPathOrUrl ?? '').trim().isEmpty
-            ? null
-            : profile.avatarPathOrUrl;
+        final incomingAvatar = (profile.avatarPathOrUrl ?? '').trim();
+        if (incomingAvatar.isNotEmpty) {
+          avatarPathOrUrl = incomingAvatar;
+        } else {
+          avatarPathOrUrl = (previousAvatar ?? '').trim().isEmpty ? null : previousAvatar;
+        }
+      } else {
+
+        avatarPathOrUrl = (previousAvatar ?? '').trim().isEmpty ? null : previousAvatar;
       }
     } finally {
       _setLoading(false);
@@ -63,7 +79,6 @@ class ProfileController extends ChangeNotifier {
       gender: gender,
       heightCm: int.tryParse(heightCm.text.trim()),
       weightKg: double.tryParse(weightKg.text.trim().replaceAll(',', '.')),
-
       avatarPathOrUrl: (avatarPathOrUrl ?? '').trim().isEmpty ? null : avatarPathOrUrl,
     );
 
@@ -91,7 +106,6 @@ class ProfileController extends ChangeNotifier {
     gender = g;
     notifyListeners();
   }
-
 
   void setAvatar(String? pathOrUrl) {
     avatarPathOrUrl = (pathOrUrl ?? '').trim().isEmpty ? null : pathOrUrl;
@@ -137,4 +151,3 @@ class ProfileController extends ChangeNotifier {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 }
-

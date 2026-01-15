@@ -25,7 +25,6 @@ class AuthRepositoryImpl implements AuthRepository {
   }) async {
     final data = await remote.login(email: email, password: password);
 
-
     final accessToken = _readToken(data, [
       'jwtToken',
       'jwt_token',
@@ -36,22 +35,33 @@ class AuthRepositoryImpl implements AuthRepository {
       'access',
     ]);
 
-
     final tokens = AuthTokens(
       accessToken: accessToken,
       refreshToken: '',
     );
 
-    local.saveTokens(AuthTokensModel.fromEntity(tokens));
+
+    await local.saveTokens(AuthTokensModel.fromEntity(tokens));
+
     return tokens;
   }
 
   @override
-  Future<void> logout() => local.clear();
+  Future<void> logout() async {
+    await local.clear();
+  }
 
   @override
   Future<AuthTokens?> getCachedTokens() async {
     final cached = local.getTokens();
     return cached?.toEntity();
+  }
+  @override
+  Future<void> register({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    await remote.register(username: username, email: email, password: password);
   }
 }

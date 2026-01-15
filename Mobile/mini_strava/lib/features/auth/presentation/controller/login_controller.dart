@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mini_strava/core/di/injector.dart';
 import 'package:mini_strava/core/navigation/app_routes.dart';
@@ -5,7 +6,6 @@ import 'package:mini_strava/features/auth/domain/usecases/login_usecase.dart';
 
 class LoginController extends ChangeNotifier {
   final formKey = GlobalKey<FormState>();
-
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -41,7 +41,6 @@ class LoginController extends ChangeNotifier {
 
     try {
       final login = sl<LoginUseCase>();
-
       await login(
         email: emailController.text.trim(),
         password: passwordController.text,
@@ -49,10 +48,23 @@ class LoginController extends ChangeNotifier {
 
       if (!context.mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
-    } catch (e) {
+    } on DioException catch (e) {
+      final code = e.response?.statusCode;
+
+      String msg = 'Logowanie nieudane';
+      if (code == 400 || code == 401) {
+        msg = 'Logowanie nieudane: niepoprawny email lub hasło';
+      }
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logowanie nieudane: $e')),
+          SnackBar(content: Text(msg)),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Logowanie nieudane')),
         );
       }
     } finally {

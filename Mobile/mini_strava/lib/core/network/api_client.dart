@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:mini_strava/core/di/injector.dart';
+import 'package:mini_strava/features/auth/data/datasources/auth_local_data_source.dart';
 import 'endpoints.dart';
 
 class ApiClient {
@@ -18,7 +20,6 @@ class ApiClient {
   }
 
   void _addInterceptors() {
-
     dio.interceptors.add(
       LogInterceptor(
         requestBody: true,
@@ -26,22 +27,22 @@ class ApiClient {
       ),
     );
 
-
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          // TODO: pobierz accessToken z cache (Hive/AuthLocalDataSource/AuthSession itp.)
-          final token = '';
 
-          if (token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
+          try {
+            final local = sl<AuthLocalDataSource>();
+            final cached = local.getTokens();
+            final token = cached?.accessToken ?? '';
+            if (token.trim().isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer ${token.trim()}';
+            }
+          } catch (_) {
+
           }
+
           handler.next(options);
-        },
-        onError: (error, handler) async {
-          // TODO(API): później refresh token (401)
-          // if (error.response?.statusCode == 401) { ... }
-          handler.next(error);
         },
       ),
     );

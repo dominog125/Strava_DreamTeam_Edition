@@ -14,11 +14,13 @@ import 'package:mini_strava/features/auth/data/datasources/auth_remote_data_sour
 import 'package:mini_strava/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:mini_strava/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mini_strava/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mini_strava/features/auth/domain/usecases/register_usecase.dart';
 import 'package:mini_strava/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:mini_strava/features/auth/domain/usecases/get_cached_tokens_usecase.dart';
 
 // PROFILE
 import 'package:mini_strava/features/profile/data/datasources/profile_local_data_source.dart';
+import 'package:mini_strava/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:mini_strava/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:mini_strava/features/profile/domain/repositories/profile_repository.dart';
 import 'package:mini_strava/features/profile/domain/usecases/get_profile_usecase.dart';
@@ -81,16 +83,28 @@ void setupInjector(SharedPreferences prefs) {
   );
 
   sl.registerLazySingleton(() => LoginUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => RegisterUseCase(sl<AuthRepository>()));
   sl.registerLazySingleton(() => LogoutUseCase(sl<AuthRepository>()));
   sl.registerLazySingleton(() => GetCachedTokensUseCase(sl<AuthRepository>()));
 
-  // ---------- PROFILE (local) ----------
+  // ---------- PROFILE (API + local) ----------
   sl.registerLazySingleton<ProfileLocalDataSource>(
         () => ProfileLocalDataSourceImpl(sl<SharedPreferences>()),
   );
-  sl.registerLazySingleton<ProfileRepository>(
-        () => ProfileRepositoryImpl(sl<ProfileLocalDataSource>(), sl<NetworkInfo>()),
+
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+        () => ProfileRemoteDataSource(sl<ApiClient>().dio),
   );
+
+  // WAŻNE: kolejność konstruktora jak w Twoim poprawionym repo: (local, remote, network)
+  sl.registerLazySingleton<ProfileRepository>(
+        () => ProfileRepositoryImpl(
+      sl<ProfileLocalDataSource>(),
+      sl<ProfileRemoteDataSource>(),
+      sl<NetworkInfo>(),
+    ),
+  );
+
   sl.registerLazySingleton(() => GetProfileUseCase(sl<ProfileRepository>()));
   sl.registerLazySingleton(() => SaveProfileUseCase(sl<ProfileRepository>()));
 
@@ -99,14 +113,17 @@ void setupInjector(SharedPreferences prefs) {
         () => Hive.box<ActivityModel>('activities'),
     instanceName: 'activitiesBox',
   );
+
   sl.registerLazySingleton<ActivityLocalDataSource>(
         () => ActivityLocalDataSourceImpl(
       sl<Box<ActivityModel>>(instanceName: 'activitiesBox'),
     ),
   );
+
   sl.registerLazySingleton<ActivityRepository>(
         () => ActivityRepositoryImpl(sl<ActivityLocalDataSource>()),
   );
+
   sl.registerLazySingleton(() => SaveActivityUseCase(sl<ActivityRepository>()));
 
   // ---------- ACTIVITY HISTORY (Hive) ----------
@@ -114,6 +131,7 @@ void setupInjector(SharedPreferences prefs) {
         () => Hive.box<ActivityHistoryHiveModel>('activity_history'),
     instanceName: 'activityHistoryBox',
   );
+
   sl.registerLazySingleton<ActivityHistoryLocalDataSource>(
         () => ActivityHistoryLocalDataSourceImpl(
       sl<Box<ActivityHistoryHiveModel>>(instanceName: 'activityHistoryBox'),
@@ -123,6 +141,7 @@ void setupInjector(SharedPreferences prefs) {
   sl.registerLazySingleton<ActivityHistoryRepositoryImpl>(
         () => ActivityHistoryRepositoryImpl(sl<ActivityHistoryLocalDataSource>()),
   );
+
   sl.registerLazySingleton<ActivityHistoryRepository>(
         () => sl<ActivityHistoryRepositoryImpl>(),
   );

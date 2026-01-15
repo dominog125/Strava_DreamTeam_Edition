@@ -11,14 +11,24 @@ class AuthRemoteDataSource {
   }) async {
     final res = await dio.post(
       Endpoints.login,
+      data: {'email': email, 'password': password},
+    );
+    return (res.data as Map).cast<String, dynamic>();
+  }
+
+  Future<void> register({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    await dio.post(
+      Endpoints.register,
       data: {
-        'email': email,
+        'username': username,
         'password': password,
+        'email': email,
+        'roles': [''],
       },
     );
-
-    final data = res.data;
-    if (data is Map<String, dynamic>) return data;
-    throw Exception('Nieoczekiwana odpowiedź z API: ${res.data}');
   }
 }

@@ -21,9 +21,10 @@ class UserProfileModel extends UserProfile {
     };
 
     final birthRaw = json['birthDate'] as String?;
-    final birthDate = (birthRaw == null || birthRaw.trim().isEmpty)
-        ? null
-        : DateTime.tryParse(birthRaw);
+    final birthDate =
+    (birthRaw == null || birthRaw.trim().isEmpty) ? null : DateTime.tryParse(birthRaw);
+
+    final avatar = (json['avatarPathOrUrl'] as String?)?.trim();
 
     return UserProfileModel(
       firstName: (json['firstName'] as String?) ?? '',
@@ -32,10 +33,7 @@ class UserProfileModel extends UserProfile {
       gender: gender,
       heightCm: (json['heightCm'] as num?)?.toInt() ?? 0,
       weightKg: (json['weightKg'] as num?)?.toDouble() ?? 0.0,
-
-      avatarPathOrUrl: (json['avatarPathOrUrl'] as String?)?.trim().isEmpty == true
-          ? null
-          : json['avatarPathOrUrl'] as String?,
+      avatarPathOrUrl: (avatar == null || avatar.isEmpty) ? null : avatar,
     );
   }
 

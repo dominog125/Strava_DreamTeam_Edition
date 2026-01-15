@@ -13,5 +13,8 @@ class Endpoints {
 
 
   static const resetPassword = '/api/Auth/ResetPassword';
+
+  static const profileMe = '/api/profile/me';
+
 }
 

@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import 'package:mini_strava/core/auth/auth_session.dart';
 import 'package:mini_strava/core/network/network_info.dart';
 import 'package:mini_strava/core/network/api_client.dart';
+import 'package:mini_strava/core/theme/theme_controller.dart';
 
 // AUTH
 import 'package:mini_strava/features/auth/data/models/auth_tokens_model.dart';
@@ -57,6 +58,7 @@ final sl = GetIt.instance;
 void setupInjector(SharedPreferences prefs) {
   if (sl.isRegistered<SharedPreferences>()) return;
 
+  sl.registerLazySingleton<ThemeController>(() => ThemeController(sl<SharedPreferences>()));
   // ---------- CORE ----------
   sl.registerLazySingleton<SharedPreferences>(() => prefs);
   sl.registerLazySingleton<Connectivity>(() => Connectivity());

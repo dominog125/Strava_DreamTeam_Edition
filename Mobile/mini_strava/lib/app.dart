@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'core/navigation/app_router.dart';
-import 'features/auth/presentation/screens/auth_gate.dart';
+import 'core/navigation/app_routes.dart';
 
 class MiniStravaApp extends StatelessWidget {
   const MiniStravaApp({super.key});
@@ -14,13 +14,8 @@ class MiniStravaApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-
-      //  START Z AUTH GATE
-      initialRoute: '/',
-      routes: {
-        '/': (_) => const AuthGate(),
-        ...AppRouter.routes,
-      },
+      initialRoute: AppRoutes.gate,
+      routes: AppRouter.routes,
     );
   }
 }

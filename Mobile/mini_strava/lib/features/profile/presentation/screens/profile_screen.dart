@@ -10,7 +10,6 @@ import 'package:mini_strava/features/activity_history/domain/usecases/get_user_s
 import 'package:mini_strava/features/activity_history/domain/entities/user_stats.dart';
 import 'package:mini_strava/features/profile/domain/entities/user_profile.dart';
 import 'package:mini_strava/features/activity_history/data/datasources/activity_history_local_data_source.dart';
-
 import '../controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -28,7 +27,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   StreamSubscription? _boxSub;
   Timer? _statsDebounce;
-
   UserStats? _stats;
   bool _statsLoading = true;
 
@@ -88,9 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final birthDateText =
-    c.birthDate == null ? '-' : DateFormat('yyyy-MM-dd').format(c.birthDate!);
-
+    final birthDateText = c.birthDate == null ? '-' : DateFormat('yyyy-MM-dd').format(c.birthDate!);
     final fullName = '${c.firstName.text} ${c.lastName.text}'.trim();
     final heightText = _withUnitOrDash(c.heightCm.text, 'cm');
     final weightText = _withUnitOrDash(c.weightKg.text, 'kg');
@@ -128,8 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () async {
               await _logout();
               if (!context.mounted) return;
-              Navigator.of(context, rootNavigator: true)
-                  .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+              Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
             },
           ),
         ],
@@ -145,9 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             CircleAvatar(
               radius: 48,
               backgroundImage: avatarProvider,
-              child: avatarProvider == null
-                  ? const Icon(Icons.person, size: 48)
-                  : null,
+              child: avatarProvider == null ? const Icon(Icons.person, size: 48) : null,
             ),
             const SizedBox(height: 16),
             Text(
@@ -156,7 +149,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-
             if (_statsLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
@@ -166,24 +158,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _StatTile(
-                    value: workouts.toString(),
-                    label: 'Treningi',
-                    icon: Icons.fitness_center,
-                  ),
-                  _StatTile(
-                    value: '${totalDist.toStringAsFixed(1)} km',
-                    label: 'Dystans',
-                    icon: Icons.route,
-                  ),
-                  _StatTile(
-                    value: '${avgSpeed.toStringAsFixed(1)} km/h',
-                    label: 'Śr. prędkość',
-                    icon: Icons.speed,
-                  ),
+                  _StatTile(value: workouts.toString(), label: 'Treningi', icon: Icons.fitness_center),
+                  _StatTile(value: '${totalDist.toStringAsFixed(1)} km', label: 'Dystans', icon: Icons.route),
+                  _StatTile(value: '${avgSpeed.toStringAsFixed(1)} km/h', label: 'Śr. prędkość', icon: Icons.speed),
                 ],
               ),
-
             const SizedBox(height: 28),
             _InfoRow(label: 'Data urodzenia', value: birthDateText),
             _InfoRow(label: 'Płeć', value: _genderLabel(c.gender)),
@@ -210,6 +189,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
                 icon: const Icon(Icons.history),
                 label: const Text('Historia aktywności'),
+              ),
+            ),
+
+
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.options),
+                icon: const Icon(Icons.tune),
+                label: const Text('Opcje'),
               ),
             ),
           ],
@@ -251,9 +241,7 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          ),
+          Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
           const SizedBox(width: 12),
           Text(value, style: Theme.of(context).textTheme.bodyLarge),
         ],
@@ -276,14 +264,10 @@ class _StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).textTheme.bodySmall?.color;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        Text(value, style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 6),
         Row(
           mainAxisSize: MainAxisSize.min,

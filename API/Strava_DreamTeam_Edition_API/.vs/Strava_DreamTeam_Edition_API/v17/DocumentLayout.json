@@ -1,12 +1,257 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\controllers\\activitescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:controllers\\activitescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Projekty\\Strava_DreamTeam_Edition\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\data\\stravadreamteamauthdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:data\\stravadreamteamauthdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\models\\domain\\activity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:models\\domain\\activity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\data\\stravadreamteamdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:data\\stravadreamteamdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\strava_dreamteam_edition_api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:strava_dreamteam_edition_api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\properties\\publishprofiles\\stravadreamteamedition-euwest-dev-001 - web deploy.pubxml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:properties\\publishprofiles\\stravadreamteamedition-euwest-dev-001 - web deploy.pubxml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\properties\\servicedependencies.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:properties\\servicedependencies.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\models\\domain\\activitycategory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:models\\domain\\activitycategory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\controllers\\activitycategoriescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:controllers\\activitycategoriescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|d:\\projekty\\strava_dreamteam_edition\\api\\strava_dreamteam_edition_api\\strava_dreamteam_edition_api.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{1DCD66A7-D1EC-4133-87C2-9F7F593E07F6}|Strava_DreamTeam_Edition_API.csproj|solutionrelative:strava_dreamteam_edition_api.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Dominik\\AppData\\Local\\Temp\\tmp43F6.tmp.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-11T09:21:25.407Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "StravaDreamTeamDbContext.cs",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Data\\StravaDreamTeamDbContext.cs",
+              "RelativeDocumentMoniker": "Data\\StravaDreamTeamDbContext.cs",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Data\\StravaDreamTeamDbContext.cs",
+              "RelativeToolTip": "Data\\StravaDreamTeamDbContext.cs",
+              "ViewState": "AgIAAKEAAAAAAAAAAAAYwLMAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-11T09:09:28.251Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Activity.cs",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Models\\Domain\\Activity.cs",
+              "RelativeDocumentMoniker": "Models\\Domain\\Activity.cs",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Models\\Domain\\Activity.cs",
+              "RelativeToolTip": "Models\\Domain\\Activity.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAowB4AAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T04:43:47.971Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "StravaDreamTeamAuthDbContext.cs",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Data\\StravaDreamTeamAuthDbContext.cs",
+              "RelativeDocumentMoniker": "Data\\StravaDreamTeamAuthDbContext.cs",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Data\\StravaDreamTeamAuthDbContext.cs",
+              "RelativeToolTip": "Data\\StravaDreamTeamAuthDbContext.cs",
+              "ViewState": "AgIAACAAAAAAAAAAAAAYwDcAAABKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-11T22:25:55.635Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "Properties\\launchSettings.json",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Properties\\launchSettings.json",
+              "RelativeToolTip": "Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-01-13T20:59:22.664Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ActivitesController.cs",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Controllers\\ActivitesController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ActivitesController.cs",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Controllers\\ActivitesController.cs",
+              "RelativeToolTip": "Controllers\\ActivitesController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-11T09:39:22.945Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-01-11T09:16:11.943Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": ".gitignore",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\.gitignore",
+              "RelativeDocumentMoniker": "..\\..\\.gitignore",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\.gitignore",
+              "RelativeToolTip": "..\\..\\.gitignore",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-01-15T09:59:10.275Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Strava_DreamTeam_Edition_API.csproj",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Strava_DreamTeam_Edition_API.csproj",
+              "RelativeDocumentMoniker": "Strava_DreamTeam_Edition_API.csproj",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Strava_DreamTeam_Edition_API.csproj",
+              "RelativeToolTip": "Strava_DreamTeam_Edition_API.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-12-30T04:41:26.749Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "serviceDependencies.json",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Properties\\serviceDependencies.json",
+              "RelativeDocumentMoniker": "Properties\\serviceDependencies.json",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Properties\\serviceDependencies.json",
+              "RelativeToolTip": "Properties\\serviceDependencies.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-01-13T20:59:33.333Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "stravadreamteamedition-euwest-dev-001 - Web Deploy.pubxml",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Properties\\PublishProfiles\\stravadreamteamedition-euwest-dev-001 - Web Deploy.pubxml",
+              "RelativeDocumentMoniker": "Properties\\PublishProfiles\\stravadreamteamedition-euwest-dev-001 - Web Deploy.pubxml",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Properties\\PublishProfiles\\stravadreamteamedition-euwest-dev-001 - Web Deploy.pubxml",
+              "RelativeToolTip": "Properties\\PublishProfiles\\stravadreamteamedition-euwest-dev-001 - Web Deploy.pubxml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003576|",
+              "WhenOpened": "2026-01-13T22:38:27.836Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ActivityCategory.cs",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Models\\Domain\\ActivityCategory.cs",
+              "RelativeDocumentMoniker": "Models\\Domain\\ActivityCategory.cs",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Models\\Domain\\ActivityCategory.cs",
+              "RelativeToolTip": "Models\\Domain\\ActivityCategory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T04:44:15.087Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ActivityCategoriesController.cs",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Controllers\\ActivityCategoriesController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ActivityCategoriesController.cs",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Controllers\\ActivityCategoriesController.cs",
+              "RelativeToolTip": "Controllers\\ActivityCategoriesController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIMAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-12T02:29:39.031Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "Strava_DreamTeam_Edition_API.http",
+              "DocumentMoniker": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Strava_DreamTeam_Edition_API.http",
+              "RelativeDocumentMoniker": "Strava_DreamTeam_Edition_API.http",
+              "ToolTip": "D:\\Projekty\\Strava_DreamTeam_Edition\\API\\Strava_DreamTeam_Edition_API\\Strava_DreamTeam_Edition_API.http",
+              "RelativeToolTip": "Strava_DreamTeam_Edition_API.http",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2026-01-12T02:18:43.696Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "tmp43F6.tmp.cs",
+              "DocumentMoniker": "C:\\Users\\Dominik\\AppData\\Local\\Temp\\tmp43F6.tmp.cs",
+              "ToolTip": "C:\\Users\\Dominik\\AppData\\Local\\Temp\\tmp43F6.tmp.cs",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-12T16:53:34.39Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

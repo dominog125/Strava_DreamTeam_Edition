@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Ten plik jest wykorzystywany przez proces publikowania/pakowania projektu internetowego. Możesz dostosować zachowanie tego procesu
+ poprzez edycję tego pliku MSBuild. Aby dowiedzieć się więcej o tym działaniu, odwiedź stronę https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project>
+  <PropertyGroup>
+    <TimeStampOfAssociatedLegacyPublishXmlFile />
+    <History>True|2026-01-14T15:55:24.5592179Z||;True|2026-01-14T00:36:34.6686539+01:00||;True|2026-01-14T00:33:30.8240881+01:00||;True|2026-01-13T23:52:33.9673346+01:00||;True|2026-01-13T23:37:40.7611484+01:00||;True|2026-01-13T23:36:13.5183466+01:00||;True|2026-01-13T23:34:43.1945877+01:00||;True|2026-01-13T23:32:17.2232222+01:00||;True|2026-01-13T23:29:15.6271554+01:00||;False|2026-01-13T23:28:34.4584723+01:00||;False|2026-01-13T23:27:05.9408880+01:00||;False|2026-01-13T23:16:30.2179493+01:00||;True|2026-01-13T23:12:55.8714632+01:00||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+  <ItemGroup>
+    <EFMigrations Include="Strava_DreamTeam_Edition_API.Data.StravaDreamTeamAuthDbContext">
+      <Value>Server=tcp:sqldb-stravadreamteamedition-euwest-dev-001.database.windows.net%3bDatabase=sqldb-stravadreamteamedition-euwest-dev-001%3bPersist Security Info=False%3bUser ID=stravaadmin%3bPassword=D%40minik5%3bMultipleActiveResultSets=False%3bEncrypt=True%3bTrustServerCertificate=True%3b</Value>
+    </EFMigrations>
+    <EFMigrations Include="Strava_DreamTeam_Edition_API.Data.StravaDreamTeamDbContext">
+      <Value>Server=tcp:sqldb-stravadreamteamedition-euwest-dev-001.database.windows.net%3bDatabase=sqldb-stravadreamteamedition-euwest-dev-001%3bPersist Security Info=False%3bUser ID=stravaadmin%3bPassword=D%40minik5%3bMultipleActiveResultSets=False%3bEncrypt=True%3bTrustServerCertificate=True%3b</Value>
+    </EFMigrations>
+  </ItemGroup>
+</Project>

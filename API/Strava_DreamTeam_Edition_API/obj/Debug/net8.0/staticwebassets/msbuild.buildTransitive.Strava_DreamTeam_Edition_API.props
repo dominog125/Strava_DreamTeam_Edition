@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\buildMultiTargeting\Strava_DreamTeam_Edition_API.props" />
-</Project>

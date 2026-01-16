@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Strava_DreamTeam_Edition_API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1025c51fa6cc5f0c17b408f4c56b0761bd650c64")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+15295e20c823b31d749e8f1641fd4087fde2d72a")]
 [assembly: System.Reflection.AssemblyProductAttribute("Strava_DreamTeam_Edition_API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Strava_DreamTeam_Edition_API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

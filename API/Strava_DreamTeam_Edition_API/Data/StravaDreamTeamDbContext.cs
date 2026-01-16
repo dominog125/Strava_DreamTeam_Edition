@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Strava_DreamTeam_Edition_API.Models.Domain;
+
 namespace Strava_DreamTeam_Edition_API.Data
 {
     public class StravaDreamTeamDbContext : DbContext
@@ -19,10 +20,17 @@ namespace Strava_DreamTeam_Edition_API.Data
         public DbSet<FriendRelation> FriendRelations { get; set; } = default!;
 
         public DbSet<ActivityGpsPoint> activityGpsPoints { get; set; } = default!;
+
+        public DbSet<ActivityLike> ActivityLikes => Set<ActivityLike>();
+        public DbSet<ActivityComment> ActivityComments => Set<ActivityComment>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
+
+            modelBuilder.Entity<ActivityLike>()
+            .HasIndex(x => new { x.ActivityId, x.UserId })
+            .IsUnique();
+
             modelBuilder.Entity<FriendRelation>()
             .HasIndex(x => new { x.UserId, x.OtherUserId })
             .IsUnique();
@@ -54,13 +62,15 @@ namespace Strava_DreamTeam_Edition_API.Data
                     Name = "Trening siłowy"
                 }
             );
+            var profileSeedUpdatedAt = new DateTime(2026, 01, 01, 12, 0, 0, DateTimeKind.Utc);
+
 
             modelBuilder.Entity<UserProfile>().HasData(
-                new UserProfile { UserId = "10000000-0000-0000-0000-000000000002", FirstName = "Jan", LastName = "Kowalski", Gender = "M", HeightCm = 178, WeightKg = 76, BirthDate = new DateTime(1994, 2, 10), UpdatedAt = DateTime.UtcNow },
-                new UserProfile { UserId = "10000000-0000-0000-0000-000000000003", FirstName = "Anna", LastName = "Nowak", Gender = "F", HeightCm = 168, WeightKg = 60, BirthDate = new DateTime(1996, 6, 5), UpdatedAt = DateTime.UtcNow },
-                new UserProfile { UserId = "10000000-0000-0000-0000-000000000004", FirstName = "Piotr", LastName = "Zieliński", Gender = "M", HeightCm = 182, WeightKg = 83, BirthDate = new DateTime(1991, 9, 21), UpdatedAt = DateTime.UtcNow },
-                new UserProfile { UserId = "10000000-0000-0000-0000-000000000005", FirstName = "Karolina", LastName = "Mazur", Gender = "F", HeightCm = 165, WeightKg = 57, BirthDate = new DateTime(1998, 1, 14), UpdatedAt = DateTime.UtcNow },
-                new UserProfile { UserId = "10000000-0000-0000-0000-000000000006", FirstName = "Marek", LastName = "Lewandowski", Gender = "M", HeightCm = 180, WeightKg = 82, BirthDate = new DateTime(1990, 11, 3), UpdatedAt = DateTime.UtcNow }
+                new UserProfile { UserId = "10000000-0000-0000-0000-000000000002", FirstName = "Jan", LastName = "Kowalski", Gender = "M", HeightCm = 178, WeightKg = 76, BirthDate = new DateTime(1994, 2, 10), UpdatedAt = profileSeedUpdatedAt },
+                new UserProfile { UserId = "10000000-0000-0000-0000-000000000003", FirstName = "Anna", LastName = "Nowak", Gender = "F", HeightCm = 168, WeightKg = 60, BirthDate = new DateTime(1996, 6, 5), UpdatedAt = profileSeedUpdatedAt },
+                new UserProfile { UserId = "10000000-0000-0000-0000-000000000004", FirstName = "Piotr", LastName = "Zieliński", Gender = "M", HeightCm = 182, WeightKg = 83, BirthDate = new DateTime(1991, 9, 21), UpdatedAt = profileSeedUpdatedAt },
+                new UserProfile { UserId = "10000000-0000-0000-0000-000000000005", FirstName = "Karolina", LastName = "Mazur", Gender = "F", HeightCm = 165, WeightKg = 57, BirthDate = new DateTime(1998, 1, 14), UpdatedAt = profileSeedUpdatedAt },
+                new UserProfile { UserId = "10000000-0000-0000-0000-000000000006", FirstName = "Marek", LastName = "Lewandowski", Gender = "M", HeightCm = 180, WeightKg = 82, BirthDate = new DateTime(1990, 11, 3), UpdatedAt = profileSeedUpdatedAt }
             );
 
             var u1 = "10000000-0000-0000-0000-000000000002";

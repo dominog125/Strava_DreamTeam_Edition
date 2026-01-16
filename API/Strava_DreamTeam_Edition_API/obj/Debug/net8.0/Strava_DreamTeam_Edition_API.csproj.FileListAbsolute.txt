@@ -139,4 +139,3 @@ D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\bin\Debug\
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\bin\Debug\net8.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
-D:\Projekty\Strava_DreamTeam_Edition\API\Strava_DreamTeam_Edition_API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

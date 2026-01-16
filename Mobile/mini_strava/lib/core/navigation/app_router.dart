@@ -8,6 +8,7 @@ import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 
 import '../../features/home/presentation/screens/home_screen.dart';
+
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_settings_screen.dart';
 import '../../features/profile/presentation/screens/options_screen.dart';
@@ -17,7 +18,10 @@ import '../../features/activity_history/presentation/screens/activity_history_sc
 
 import '../../features/friends/presentation/screens/friends_screen.dart';
 import '../../features/invites/presentation/screens/invites_inbox_screen.dart';
+
 import '../../features/ranking/presentation/screens/ranking_screen.dart';
+import '../../features/search/presentation/screens/search_screen.dart';
+
 
 class AppRouter {
   static Map<String, WidgetBuilder> get routes => {
@@ -26,11 +30,13 @@ class AppRouter {
     AppRoutes.register: (_) => const RegisterScreen(),
     AppRoutes.resetPassword: (_) => const ResetPasswordScreen(),
 
+
     AppRoutes.home: (ctx) => HomeScreen(
       onOpenProfile: () => Navigator.pushNamed(ctx, AppRoutes.profile),
       onOpenFriends: () => Navigator.pushNamed(ctx, AppRoutes.friends),
       onOpenInvites: () => Navigator.pushNamed(ctx, AppRoutes.invites),
       onOpenRanking: () => Navigator.pushNamed(ctx, AppRoutes.ranking),
+      onOpenSearch: () => Navigator.pushNamed(ctx, AppRoutes.search),
     ),
 
     AppRoutes.profile: (_) => const ProfileScreen(),
@@ -43,5 +49,6 @@ class AppRouter {
     AppRoutes.friends: (_) => const FriendsScreen(),
     AppRoutes.invites: (_) => const InvitesInboxScreen(),
     AppRoutes.ranking: (_) => const RankingScreen(),
+    AppRoutes.search: (_) => const SearchScreen(),
   };
 }

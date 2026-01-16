@@ -28,6 +28,7 @@ class AuthGate extends StatelessWidget {
             onOpenFriends: () => Navigator.pushNamed(context, AppRoutes.friends),
             onOpenInvites: () => Navigator.pushNamed(context, AppRoutes.invites),
             onOpenRanking: () => Navigator.pushNamed(context, AppRoutes.ranking),
+            onOpenSearch: () => Navigator.pushNamed(context, AppRoutes.search),
           );
         }
 

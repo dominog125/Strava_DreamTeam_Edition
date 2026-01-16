@@ -6,6 +6,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onOpenRanking;
   final VoidCallback onOpenFriends;
   final VoidCallback onOpenInvites;
+  final VoidCallback onOpenSearch; // ✅ NOWE
   final VoidCallback onOpenProfile;
 
   final Uint8List? avatarBytes;
@@ -18,6 +19,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onOpenRanking,
     required this.onOpenFriends,
     required this.onOpenInvites,
+    required this.onOpenSearch, // ✅ NOWE
     required this.onOpenProfile,
     this.avatarBytes,
     this.localAvatarPath,
@@ -31,37 +33,64 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final Color barColor =
-        Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.primary;
+        Theme.of(context).appBarTheme.backgroundColor ??
+            Theme.of(context).colorScheme.primary;
+
+    // ciaśniejsze IconButtony (żeby weszła dodatkowa lupa i nie było overflow)
+    const iconConstraints = BoxConstraints(minWidth: 40, minHeight: 40);
+    const iconPadding = EdgeInsets.zero;
 
     return AppBar(
       backgroundColor: barColor,
       centerTitle: false,
-      titleSpacing: 12,
+      titleSpacing: 8,
       title: Row(
         children: [
-          Image.asset(
-            'assets/images/logo.png',
-            height: 22,
-            fit: BoxFit.contain,
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Image.asset(
+                'assets/images/logo.png',
+                height: 22,
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
         ],
       ),
       actions: [
         IconButton(
+          tooltip: 'Szukaj',
+          onPressed: () {
+            debugPrint('SEARCH CLICK');
+            onOpenSearch();
+          },
+          icon: const Icon(Icons.search),
+          constraints: iconConstraints,
+          padding: iconPadding,
+        ),
+        IconButton(
           tooltip: 'Ranking użytkowników',
           onPressed: onOpenRanking,
           icon: const Icon(Icons.emoji_events_outlined),
+          constraints: iconConstraints,
+          padding: iconPadding,
         ),
         IconButton(
           tooltip: 'Znajomi',
           onPressed: onOpenFriends,
           icon: const Icon(Icons.group_outlined),
+          constraints: iconConstraints,
+          padding: iconPadding,
         ),
         _IconWithBadge(
           tooltip: 'Zaproszenia',
           onPressed: onOpenInvites,
           icon: Icons.mail_outline,
           count: invitesCount,
+          constraints: iconConstraints,
+          padding: iconPadding,
         ),
         Padding(
           padding: const EdgeInsets.only(right: 10, left: 4),
@@ -83,12 +112,16 @@ class _IconWithBadge extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData icon;
   final int? count;
+  final BoxConstraints constraints;
+  final EdgeInsets padding;
 
   const _IconWithBadge({
     required this.tooltip,
     required this.onPressed,
     required this.icon,
     required this.count,
+    required this.constraints,
+    required this.padding,
   });
 
   @override
@@ -103,13 +136,17 @@ class _IconWithBadge extends StatelessWidget {
           tooltip: tooltip,
           onPressed: onPressed,
           icon: Icon(icon),
+          constraints: constraints,
+          padding: padding,
         ),
         if (show)
           Positioned(
             right: 6,
             top: 6,
             child: Container(
-              padding: showNumber ? const EdgeInsets.symmetric(horizontal: 5, vertical: 2) : EdgeInsets.zero,
+              padding: showNumber
+                  ? const EdgeInsets.symmetric(horizontal: 5, vertical: 2)
+                  : EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 10, minHeight: 10),
               decoration: BoxDecoration(
                 color: Colors.redAccent,
@@ -148,20 +185,17 @@ class _AvatarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = (initials == null || initials!.trim().isEmpty) ? 'U' : initials!.trim();
+    final fallback =
+    (initials == null || initials!.trim().isEmpty) ? 'U' : initials!.trim();
 
     ImageProvider? provider;
-
-
     final p = (localAvatarPath ?? '').trim();
+
     if (p.isNotEmpty) {
       provider = FileImage(File(p));
     } else {
-      // 2) bytes z API
       final b = avatarBytes;
-      if (b != null && b.isNotEmpty) {
-        provider = MemoryImage(b);
-      }
+      if (b != null && b.isNotEmpty) provider = MemoryImage(b);
     }
 
     return InkWell(
@@ -174,7 +208,9 @@ class _AvatarButton extends StatelessWidget {
         backgroundImage: provider,
         child: provider == null
             ? Text(
-          fallback.length > 2 ? fallback.substring(0, 2).toUpperCase() : fallback.toUpperCase(),
+          fallback.length > 2
+              ? fallback.substring(0, 2).toUpperCase()
+              : fallback.toUpperCase(),
           style: const TextStyle(fontWeight: FontWeight.w700),
         )
             : null,

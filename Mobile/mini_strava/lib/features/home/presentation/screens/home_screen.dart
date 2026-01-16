@@ -8,6 +8,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onOpenFriends;
   final VoidCallback? onOpenInvites;
   final VoidCallback? onOpenRanking;
+  final VoidCallback? onOpenSearch;
 
   const HomeScreen({
     super.key,
@@ -15,6 +16,7 @@ class HomeScreen extends StatefulWidget {
     this.onOpenFriends,
     this.onOpenInvites,
     this.onOpenRanking,
+    this.onOpenSearch,
   });
 
   @override
@@ -68,13 +70,17 @@ class _HomeScreenState extends State<HomeScreen> {
         onOpenRanking: widget.onOpenRanking ?? () {},
         onOpenFriends: widget.onOpenFriends ?? () {},
         onOpenInvites: widget.onOpenInvites ?? () {},
+        onOpenSearch: widget.onOpenSearch ?? () {},
         onOpenProfile: _openProfileAndRefresh,
         avatarBytes: _avatarBytes,
         initials: _initials,
       ),
       body: const Padding(
         padding: EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: []),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [],
+        ),
       ),
     );
   }

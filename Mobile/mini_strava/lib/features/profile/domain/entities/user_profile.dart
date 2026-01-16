@@ -7,8 +7,6 @@ class UserProfile {
   final Gender gender;
   final int? heightCm;
   final double? weightKg;
-
-
   final String? avatarPathOrUrl;
 
   const UserProfile({
@@ -18,7 +16,7 @@ class UserProfile {
     required this.gender,
     required this.heightCm,
     required this.weightKg,
-    this.avatarPathOrUrl,
+    required this.avatarPathOrUrl,
   });
 
   UserProfile copyWith({
@@ -37,7 +35,7 @@ class UserProfile {
       gender: gender ?? this.gender,
       heightCm: heightCm ?? this.heightCm,
       weightKg: weightKg ?? this.weightKg,
-      avatarPathOrUrl: avatarPathOrUrl ?? this.avatarPathOrUrl,
+      avatarPathOrUrl: avatarPathOrUrl,
     );
   }
 }

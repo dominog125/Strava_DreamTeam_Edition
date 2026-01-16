@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/repositories/profile_repository.dart';
@@ -27,8 +30,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<UserProfile?> getProfile() async {
-    final cached = await local.getProfile(); // UserProfileModel?
-    final cachedAvatar = (cached?.avatarPathOrUrl ?? '').trim();
+    final cached = await local.getProfile();
 
     if (await network.isConnected) {
       try {
@@ -43,7 +45,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
           gender: api.gender,
           heightCm: api.heightCm ?? 0,
           weightKg: api.weightKg ?? 0.0,
-          avatarPathOrUrl: cachedAvatar.isEmpty ? null : cachedAvatar,
+          avatarPathOrUrl: null,
         );
 
         await local.saveProfile(merged);
@@ -58,7 +60,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<void> saveProfile(UserProfile profile) async {
-
     final model = UserProfileModel(
       firstName: profile.firstName,
       lastName: profile.lastName,
@@ -66,13 +67,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
       gender: profile.gender,
       heightCm: profile.heightCm ?? 0,
       weightKg: profile.weightKg ?? 0.0,
-      avatarPathOrUrl: (profile.avatarPathOrUrl ?? '').trim().isEmpty
-          ? null
-          : profile.avatarPathOrUrl,
+      avatarPathOrUrl: null,
     );
 
     await local.saveProfile(model);
-
 
     if (await network.isConnected) {
       await remote.updateMe(
@@ -83,6 +81,40 @@ class ProfileRepositoryImpl implements ProfileRepository {
         heightCm: model.heightCm ?? 0,
         weightKg: model.weightKg ?? 0.0,
       );
+    }
+  }
+
+  @override
+  Future<Uint8List?> getAvatarBytes() async {
+    if (!await network.isConnected) return null;
+    return remote.getMyAvatarBytes();
+  }
+
+  @override
+  Future<void> uploadAvatar(File file) async {
+    if (!await network.isConnected) return;
+    await remote.uploadMyAvatar(file);
+  }
+
+  @override
+  Future<void> deleteAvatar() async {
+
+    final cached = await local.getProfile();
+    if (cached != null) {
+      final cleared = UserProfileModel(
+        firstName: cached.firstName,
+        lastName: cached.lastName,
+        birthDate: cached.birthDate,
+        gender: cached.gender,
+        heightCm: cached.heightCm ?? 0,
+        weightKg: cached.weightKg ?? 0.0,
+        avatarPathOrUrl: null,
+      );
+      await local.saveProfile(cleared);
+    }
+
+    if (await network.isConnected) {
+      await remote.deleteMyAvatar();
     }
   }
 }

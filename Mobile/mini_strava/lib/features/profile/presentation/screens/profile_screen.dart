@@ -10,6 +10,7 @@ import 'package:mini_strava/features/activity_history/domain/usecases/get_user_s
 import 'package:mini_strava/features/activity_history/domain/entities/user_stats.dart';
 import 'package:mini_strava/features/profile/domain/entities/user_profile.dart';
 import 'package:mini_strava/features/activity_history/data/datasources/activity_history_local_data_source.dart';
+
 import '../controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   StreamSubscription? _boxSub;
   Timer? _statsDebounce;
+
   UserStats? _stats;
   bool _statsLoading = true;
 
@@ -40,6 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     c.addListener(_onChanged);
     c.load();
+
     _loadStats();
 
     _boxSub = _historyLocal.box.watch().listen((_) {
@@ -81,12 +84,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _boxSub?.cancel();
     c.removeListener(_onChanged);
     c.disposeControllers();
+    c.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final birthDateText = c.birthDate == null ? '-' : DateFormat('yyyy-MM-dd').format(c.birthDate!);
+    final birthDateText =
+    c.birthDate == null ? '-' : DateFormat('yyyy-MM-dd').format(c.birthDate!);
+
     final fullName = '${c.firstName.text} ${c.lastName.text}'.trim();
     final heightText = _withUnitOrDash(c.heightCm.text, 'cm');
     final weightText = _withUnitOrDash(c.weightKg.text, 'kg');
@@ -95,13 +101,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final totalDist = _stats?.totalDistanceKm ?? 0.0;
     final avgSpeed = _stats?.avgSpeedKmH ?? 0.0;
 
-    final avatar = (c.avatarPathOrUrl ?? '').trim();
-    final hasAvatar = avatar.isNotEmpty;
-    final isUrl = avatar.startsWith('http');
+    final local = (c.avatarPath ?? '').trim();
+    final hasLocal = local.isNotEmpty;
+    final hasApi = c.avatarBytes != null && c.avatarBytes!.isNotEmpty;
 
     ImageProvider? avatarProvider;
-    if (hasAvatar) {
-      avatarProvider = isUrl ? NetworkImage(avatar) : FileImage(File(avatar));
+    if (hasLocal) {
+      avatarProvider = FileImage(File(local));
+    } else if (hasApi) {
+      avatarProvider = MemoryImage(c.avatarBytes!);
     }
 
     return Scaffold(
@@ -124,7 +132,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () async {
               await _logout();
               if (!context.mounted) return;
-              Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+              Navigator.of(context, rootNavigator: true)
+                  .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
             },
           ),
         ],
@@ -140,7 +149,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             CircleAvatar(
               radius: 48,
               backgroundImage: avatarProvider,
-              child: avatarProvider == null ? const Icon(Icons.person, size: 48) : null,
+              child: avatarProvider == null
+                  ? const Icon(Icons.person, size: 48)
+                  : null,
             ),
             const SizedBox(height: 16),
             Text(
@@ -158,9 +169,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _StatTile(value: workouts.toString(), label: 'Treningi', icon: Icons.fitness_center),
-                  _StatTile(value: '${totalDist.toStringAsFixed(1)} km', label: 'Dystans', icon: Icons.route),
-                  _StatTile(value: '${avgSpeed.toStringAsFixed(1)} km/h', label: 'Śr. prędkość', icon: Icons.speed),
+                  _StatTile(
+                    value: workouts.toString(),
+                    label: 'Treningi',
+                    icon: Icons.fitness_center,
+                  ),
+                  _StatTile(
+                    value: '${totalDist.toStringAsFixed(1)} km',
+                    label: 'Dystans',
+                    icon: Icons.route,
+                  ),
+                  _StatTile(
+                    value: '${avgSpeed.toStringAsFixed(1)} km/h',
+                    label: 'Śr. prędkość',
+                    icon: Icons.speed,
+                  ),
                 ],
               ),
             const SizedBox(height: 28),
@@ -169,7 +192,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _InfoRow(label: 'Wzrost', value: heightText),
             _InfoRow(label: 'Waga', value: weightText),
             const SizedBox(height: 32),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -191,8 +213,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label: const Text('Historia aktywności'),
               ),
             ),
-
-
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,

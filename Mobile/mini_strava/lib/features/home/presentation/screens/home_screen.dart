@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mini_strava/features/profile/presentation/controller/profile_controller.dart';
 import '../widgets/home_app_bar.dart';
@@ -23,7 +24,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final ProfileController _profile;
 
-  String? _avatarPathOrUrl;
+  Uint8List? _avatarBytes;
   String? _initials;
 
   @override
@@ -35,8 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _syncFromProfile() {
-    final avatar = (_profile.avatarPathOrUrl ?? '').trim();
-
     final fn = _profile.firstName.text.trim();
     final ln = _profile.lastName.text.trim();
     final initials =
@@ -44,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!mounted) return;
     setState(() {
-      _avatarPathOrUrl = avatar.isEmpty ? null : avatar;
+      _avatarBytes = _profile.avatarBytes;
       _initials = initials.isEmpty ? 'U' : initials.toUpperCase();
     });
   }
@@ -57,7 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openProfileAndRefresh() async {
-
     await Navigator.pushNamed(context, '/profile');
     if (!mounted) return;
     await _profile.load();
@@ -71,17 +69,12 @@ class _HomeScreenState extends State<HomeScreen> {
         onOpenFriends: widget.onOpenFriends ?? () {},
         onOpenInvites: widget.onOpenInvites ?? () {},
         onOpenProfile: _openProfileAndRefresh,
-        avatarUrl: _avatarPathOrUrl,
+        avatarBytes: _avatarBytes,
         initials: _initials,
       ),
       body: const Padding(
         padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-
-          ],
-        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: []),
       ),
     );
   }

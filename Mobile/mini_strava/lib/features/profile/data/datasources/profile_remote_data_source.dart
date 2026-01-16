@@ -1,9 +1,11 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:mini_strava/core/network/endpoints.dart';
 
 class ProfileRemoteDataSource {
   final Dio dio;
-
   ProfileRemoteDataSource(this.dio);
 
   Future<Map<String, dynamic>> getMe() async {
@@ -35,5 +37,34 @@ class ProfileRemoteDataSource {
         'weightKg': weightKg,
       },
     );
+  }
+
+  Future<Uint8List?> getMyAvatarBytes() async {
+    final res = await dio.get(
+      Endpoints.profileMeAvatar,
+      options: Options(responseType: ResponseType.bytes),
+    );
+
+    final data = res.data;
+    if (data is Uint8List) return data;
+    if (data is List<int>) return Uint8List.fromList(data);
+    return null;
+  }
+
+  Future<void> uploadMyAvatar(File file) async {
+    final name = file.path.split(Platform.pathSeparator).last;
+    final form = FormData.fromMap({
+      'file': await MultipartFile.fromFile(file.path, filename: name),
+    });
+
+    await dio.post(
+      Endpoints.profileMeAvatar,
+      data: form,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+  }
+
+  Future<void> deleteMyAvatar() async {
+    await dio.delete(Endpoints.profileMeAvatar);
   }
 }

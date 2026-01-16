@@ -31,6 +31,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   void dispose() {
     c.removeListener(_onChanged);
     c.disposeControllers();
+    c.dispose();
     super.dispose();
   }
 
@@ -43,10 +44,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       );
       if (xfile == null) return;
 
-
-      setState(() {
-        c.avatarPathOrUrl = xfile.path;
-      });
+      c.setAvatarPath(xfile.path);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,10 +53,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     }
   }
 
-  void _clearAvatar() {
-    setState(() {
-      c.avatarPathOrUrl = null;
-    });
+  Future<void> _deleteAvatar() async {
+    await c.deleteAvatar(context);
   }
 
   @override
@@ -67,8 +63,18 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ? 'Wybierz datę'
         : DateFormat('yyyy-MM-dd').format(c.birthDate!);
 
-    final avatar = (c.avatarPathOrUrl ?? '').trim();
-    final hasLocalAvatar = avatar.isNotEmpty && !avatar.startsWith('http');
+    final local = (c.avatarPath ?? '').trim();
+    final hasLocal = local.isNotEmpty;
+    final hasApi = c.avatarBytes != null && c.avatarBytes!.isNotEmpty;
+
+    ImageProvider? avatarProvider;
+    if (hasLocal) {
+      avatarProvider = FileImage(File(local));
+    } else if (hasApi) {
+      avatarProvider = MemoryImage(c.avatarBytes!);
+    }
+
+    final hasAvatar = hasLocal || hasApi;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
@@ -78,7 +84,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           key: c.formKey,
           child: ListView(
             children: [
-
               Card(
                 elevation: 1,
                 child: Padding(
@@ -87,8 +92,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     children: [
                       CircleAvatar(
                         radius: 34,
-                        backgroundImage: hasLocalAvatar ? FileImage(File(avatar)) : null,
-                        child: !hasLocalAvatar
+                        backgroundImage: avatarProvider,
+                        child: avatarProvider == null
                             ? const Icon(Icons.person, size: 32)
                             : null,
                       ),
@@ -100,12 +105,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             OutlinedButton.icon(
                               onPressed: c.isLoading ? null : _pickAvatar,
                               icon: const Icon(Icons.photo_library_outlined),
-                              label: Text(hasLocalAvatar ? 'Zmień avatar' : 'Wybierz avatar'),
+                              label: Text(hasAvatar ? 'Zmień avatar' : 'Wybierz avatar'),
                             ),
                             const SizedBox(height: 6),
-                            if ((c.avatarPathOrUrl ?? '').trim().isNotEmpty)
+                            if (hasAvatar)
                               TextButton.icon(
-                                onPressed: c.isLoading ? null : _clearAvatar,
+                                onPressed: c.isLoading ? null : _deleteAvatar,
                                 icon: const Icon(Icons.delete_outline),
                                 label: const Text('Usuń avatar'),
                               ),
@@ -116,23 +121,19 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
-
               TextFormField(
                 controller: c.firstName,
                 decoration: const InputDecoration(labelText: 'Imię'),
                 validator: (v) => c.validateName(v, 'imię'),
               ),
               const SizedBox(height: 12),
-
               TextFormField(
                 controller: c.lastName,
                 decoration: const InputDecoration(labelText: 'Nazwisko'),
                 validator: (v) => c.validateName(v, 'nazwisko'),
               ),
               const SizedBox(height: 12),
-
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Data urodzenia'),
@@ -152,7 +153,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 },
               ),
               const SizedBox(height: 6),
-
               DropdownButtonFormField<Gender>(
                 initialValue: c.gender,
                 decoration: const InputDecoration(labelText: 'Płeć'),
@@ -165,7 +165,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 onChanged: c.isLoading ? null : (g) => c.setGender(g ?? Gender.notSet),
               ),
               const SizedBox(height: 12),
-
               TextFormField(
                 controller: c.heightCm,
                 keyboardType: TextInputType.number,
@@ -173,7 +172,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 validator: c.validateHeight,
               ),
               const SizedBox(height: 12),
-
               TextFormField(
                 controller: c.weightKg,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -181,7 +179,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 validator: c.validateWeight,
               ),
               const SizedBox(height: 18),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

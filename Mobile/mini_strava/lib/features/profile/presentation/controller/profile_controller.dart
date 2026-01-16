@@ -1,8 +1,15 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import '../../../../core/di/injector.dart';
+
 import '../../domain/entities/user_profile.dart';
 import '../../domain/usecases/get_profile_usecase.dart';
 import '../../domain/usecases/save_profile_usecase.dart';
+import '../../domain/usecases/get_avatar_usecase.dart';
+import '../../domain/usecases/upload_avatar_usecase.dart';
+import '../../domain/usecases/delete_avatar_usecase.dart';
 
 class ProfileController extends ChangeNotifier {
   final formKey = GlobalKey<FormState>();
@@ -16,10 +23,16 @@ class ProfileController extends ChangeNotifier {
   Gender gender = Gender.notSet;
 
 
-  String? avatarPathOrUrl;
+  String? avatarPath;
+
+
+  Uint8List? avatarBytes;
 
   final GetProfileUseCase _getProfile = sl<GetProfileUseCase>();
   final SaveProfileUseCase _saveProfile = sl<SaveProfileUseCase>();
+  final GetAvatarUseCase _getAvatar = sl<GetAvatarUseCase>();
+  final UploadAvatarUseCase _uploadAvatar = sl<UploadAvatarUseCase>();
+  final DeleteAvatarUseCase _deleteAvatar = sl<DeleteAvatarUseCase>();
 
   bool _loading = false;
   bool get isLoading => _loading;
@@ -27,36 +40,38 @@ class ProfileController extends ChangeNotifier {
   // ===================== LOAD =====================
   Future<void> load() async {
     _setLoading(true);
-
-
-    final previousAvatar = avatarPathOrUrl;
-
     try {
-      final profile = await _getProfile();
-      if (profile != null) {
-        firstName.text = profile.firstName;
-        lastName.text = profile.lastName;
 
+      try {
+        final profile = await _getProfile();
+        if (profile != null) {
+          firstName.text = profile.firstName;
+          lastName.text = profile.lastName;
 
-        heightCm.text = (profile.heightCm ?? '').toString();
-        if (profile.heightCm == null) heightCm.text = '';
+          if (profile.heightCm == null) {
+            heightCm.text = '';
+          } else {
+            heightCm.text = profile.heightCm.toString();
+          }
 
-        weightKg.text = (profile.weightKg ?? '').toString();
-        if (profile.weightKg == null) weightKg.text = '';
+          if (profile.weightKg == null) {
+            weightKg.text = '';
+          } else {
+            weightKg.text = profile.weightKg.toString();
+          }
 
-        birthDate = profile.birthDate;
-        gender = profile.gender;
-
-
-        final incomingAvatar = (profile.avatarPathOrUrl ?? '').trim();
-        if (incomingAvatar.isNotEmpty) {
-          avatarPathOrUrl = incomingAvatar;
-        } else {
-          avatarPathOrUrl = (previousAvatar ?? '').trim().isEmpty ? null : previousAvatar;
+          birthDate = profile.birthDate;
+          gender = profile.gender;
         }
-      } else {
+      } catch (_) {
 
-        avatarPathOrUrl = (previousAvatar ?? '').trim().isEmpty ? null : previousAvatar;
+      }
+
+
+      try {
+        avatarBytes = await _getAvatar();
+      } catch (_) {
+        avatarBytes = null;
       }
     } finally {
       _setLoading(false);
@@ -66,7 +81,6 @@ class ProfileController extends ChangeNotifier {
   // ===================== SAVE =====================
   Future<void> save(BuildContext context) async {
     if (!(formKey.currentState?.validate() ?? false)) return;
-
     if (birthDate == null) {
       _snack(context, 'Wybierz datę urodzenia');
       return;
@@ -79,18 +93,56 @@ class ProfileController extends ChangeNotifier {
       gender: gender,
       heightCm: int.tryParse(heightCm.text.trim()),
       weightKg: double.tryParse(weightKg.text.trim().replaceAll(',', '.')),
-      avatarPathOrUrl: (avatarPathOrUrl ?? '').trim().isEmpty ? null : avatarPathOrUrl,
+
+      avatarPathOrUrl: null,
     );
 
     _setLoading(true);
     try {
+
+      final local = (avatarPath ?? '').trim();
+      if (local.isNotEmpty) {
+        final f = File(local);
+        if (await f.exists()) {
+          await _uploadAvatar(f);
+        }
+      }
+
+
       await _saveProfile(profile);
+
+
+      try {
+        avatarBytes = await _getAvatar();
+      } catch (_) {
+        avatarBytes = null;
+      }
+
       if (!context.mounted) return;
       _snack(context, 'Zapisano profil ✅');
       Navigator.pop(context);
     } catch (_) {
       if (!context.mounted) return;
       _snack(context, 'Błąd zapisu profilu');
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // ===================== DELETE AVATAR =====================
+  Future<void> deleteAvatar(BuildContext context) async {
+    _setLoading(true);
+    try {
+      await _deleteAvatar();
+      avatarBytes = null;
+      avatarPath = null;
+
+      if (!context.mounted) return;
+      _snack(context, 'Usunięto avatar ✅');
+      notifyListeners();
+    } catch (_) {
+      if (!context.mounted) return;
+      _snack(context, 'Nie udało się usunąć avatara');
     } finally {
       _setLoading(false);
     }
@@ -107,8 +159,9 @@ class ProfileController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setAvatar(String? pathOrUrl) {
-    avatarPathOrUrl = (pathOrUrl ?? '').trim().isEmpty ? null : pathOrUrl;
+  void setAvatarPath(String? path) {
+    final p = (path ?? '').trim();
+    avatarPath = p.isEmpty ? null : p;
     notifyListeners();
   }
 

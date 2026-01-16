@@ -9,5 +9,7 @@ class Endpoints {
   static const profileMe = '/api/profile/me';
   static const friends = '/api/friends';
   static String friendDelete(String otherUserId) => '/api/friends/$otherUserId';
+  static const profileMeAvatar = '/api/profile/me/avatar';
+
 }
 

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -7,7 +8,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onOpenInvites;
   final VoidCallback onOpenProfile;
 
-  final String? avatarUrl;
+  final Uint8List? avatarBytes;
+  final String? localAvatarPath;
   final String? initials;
   final int? invitesCount;
 
@@ -17,7 +19,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onOpenFriends,
     required this.onOpenInvites,
     required this.onOpenProfile,
-    this.avatarUrl,
+    this.avatarBytes,
+    this.localAvatarPath,
     this.initials,
     this.invitesCount,
   });
@@ -28,8 +31,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final Color barColor =
-        Theme.of(context).appBarTheme.backgroundColor ??
-            Theme.of(context).colorScheme.primary;
+        Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.primary;
 
     return AppBar(
       backgroundColor: barColor,
@@ -39,39 +41,33 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Image.asset(
             'assets/images/logo.png',
-            height: 22, // ⬅️ sensowny rozmiar
+            height: 22,
             fit: BoxFit.contain,
           ),
         ],
       ),
       actions: [
-        /// 🏆 RANKING
         IconButton(
           tooltip: 'Ranking użytkowników',
           onPressed: onOpenRanking,
           icon: const Icon(Icons.emoji_events_outlined),
         ),
-
-        /// 👥 ZNAJOMI
         IconButton(
           tooltip: 'Znajomi',
           onPressed: onOpenFriends,
           icon: const Icon(Icons.group_outlined),
         ),
-
-        /// ✉ ZAPROSZENIA
         _IconWithBadge(
           tooltip: 'Zaproszenia',
           onPressed: onOpenInvites,
           icon: Icons.mail_outline,
           count: invitesCount,
         ),
-
-        /// 👤 AVATAR
         Padding(
           padding: const EdgeInsets.only(right: 10, left: 4),
           child: _AvatarButton(
-            avatarUrl: avatarUrl,
+            avatarBytes: avatarBytes,
+            localAvatarPath: localAvatarPath,
             initials: initials,
             onTap: onOpenProfile,
           ),
@@ -113,9 +109,7 @@ class _IconWithBadge extends StatelessWidget {
             right: 6,
             top: 6,
             child: Container(
-              padding: showNumber
-                  ? const EdgeInsets.symmetric(horizontal: 5, vertical: 2)
-                  : EdgeInsets.zero,
+              padding: showNumber ? const EdgeInsets.symmetric(horizontal: 5, vertical: 2) : EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 10, minHeight: 10),
               decoration: BoxDecoration(
                 color: Colors.redAccent,
@@ -140,26 +134,34 @@ class _IconWithBadge extends StatelessWidget {
 
 /// ---------- AVATAR ----------
 class _AvatarButton extends StatelessWidget {
-  final String? avatarUrl;
+  final Uint8List? avatarBytes;
+  final String? localAvatarPath;
   final String? initials;
   final VoidCallback onTap;
 
   const _AvatarButton({
-    required this.avatarUrl,
+    required this.avatarBytes,
+    required this.localAvatarPath,
     required this.initials,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final fallback =
-    (initials == null || initials!.trim().isEmpty) ? 'U' : initials!;
+    final fallback = (initials == null || initials!.trim().isEmpty) ? 'U' : initials!.trim();
 
     ImageProvider? provider;
-    if (avatarUrl != null && avatarUrl!.isNotEmpty) {
-      provider = avatarUrl!.startsWith('http')
-          ? NetworkImage(avatarUrl!)
-          : FileImage(File(avatarUrl!));
+
+
+    final p = (localAvatarPath ?? '').trim();
+    if (p.isNotEmpty) {
+      provider = FileImage(File(p));
+    } else {
+      // 2) bytes z API
+      final b = avatarBytes;
+      if (b != null && b.isNotEmpty) {
+        provider = MemoryImage(b);
+      }
     }
 
     return InkWell(
@@ -172,9 +174,7 @@ class _AvatarButton extends StatelessWidget {
         backgroundImage: provider,
         child: provider == null
             ? Text(
-          fallback.length > 2
-              ? fallback.substring(0, 2).toUpperCase()
-              : fallback.toUpperCase(),
+          fallback.length > 2 ? fallback.substring(0, 2).toUpperCase() : fallback.toUpperCase(),
           style: const TextStyle(fontWeight: FontWeight.w700),
         )
             : null,

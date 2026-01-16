@@ -19,7 +19,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
   late final FriendsController c;
 
   StreamSubscription<List<ConnectivityResult>>? _connSub;
-
   bool _checkingNet = true;
   bool _hasInternet = true;
 
@@ -42,7 +41,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
           _checkingNet = false;
         });
       }
-
       if (ok && changed) {
         await c.load();
       }
@@ -81,8 +79,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
     setState(() => _checkingNet = true);
 
     final ok = await _pingInternet();
-
     if (!mounted) return;
+
     setState(() {
       _hasInternet = ok;
       _checkingNet = false;
@@ -117,7 +115,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     if (res != true || !mounted) return;
 
-
     final ok = await _pingInternet();
     if (!mounted) return;
 
@@ -132,6 +129,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     try {
       await c.removeFriend(friend.userId);
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Usunięto znajomego ✅')),
       );
@@ -232,11 +230,6 @@ class FriendTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          ),
-          IconButton(
-            tooltip: 'Zablokuj (później)',
-            onPressed: () {}, // TODO
-            icon: const Icon(Icons.lock_outline),
           ),
           IconButton(
             tooltip: 'Usuń',

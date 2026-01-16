@@ -15,13 +15,12 @@ class FriendsController extends ChangeNotifier {
   List<Friend> _friends = const [];
   List<Friend> get friends => _friends;
 
-
   Future<void> load() async {
     if (_loading) return;
-
     _setLoading(true);
     try {
-      _friends = await _getFriends();
+      // ✅ tylko Accepted
+      _friends = await _getFriends(status: 'Accepted');
     } catch (_) {
       _friends = const [];
     } finally {
@@ -31,12 +30,9 @@ class FriendsController extends ChangeNotifier {
 
   Future<void> removeFriend(String otherUserId) async {
     if (_loading) return;
-
     _setLoading(true);
     try {
       await _deleteFriend(otherUserId);
-
-
       _friends = _friends
           .where((f) => f.userId != otherUserId)
           .toList(growable: false);

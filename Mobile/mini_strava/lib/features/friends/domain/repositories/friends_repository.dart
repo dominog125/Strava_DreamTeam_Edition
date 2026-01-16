@@ -1,6 +1,6 @@
 import '../entities/friend.dart';
 
 abstract class FriendsRepository {
-  Future<List<Friend>> getFriends();
+  Future<List<Friend>> getFriends({String? status});
   Future<void> deleteFriend(String otherUserId);
 }

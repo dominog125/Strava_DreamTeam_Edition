@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:mini_strava/core/di/injector.dart';
 import 'package:mini_strava/core/network/api_client.dart';
 import 'package:mini_strava/core/widgets/offline_placeholder.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -30,14 +31,23 @@ class _SearchScreenState extends State<SearchScreen> {
   String? _error;
   List<_UserSearchItem> _users = [];
 
+  // cooldown (2h) dla zaproszen
+  late final SharedPreferences _prefs;
+  final Map<String, int> _inviteCooldownUntilMs = {}; // userName -> epoch ms
+  final Set<String> _sendingInvites = {}; // żeby nie spamować klikami
+
   static const int _take = 20;
+  static const Duration _cooldown = Duration(hours: 2);
+  static const String _cooldownPrefsKey = 'invite_cooldowns_v1';
 
   @override
   void initState() {
     super.initState();
 
-    // ✅ bierzemy Dio z ApiClient (tak macie w injectorze)
     _dio = sl<ApiClient>().dio;
+    _prefs = sl<SharedPreferences>();
+
+    _loadCooldowns();
 
     _checkInternet().then((_) {
       if (_hasInternet) {
@@ -54,6 +64,69 @@ class _SearchScreenState extends State<SearchScreen> {
     _controller.removeListener(_onQueryChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  // ---------------- RELATION STATUS ----------------
+  // ✅ accepted/friend => traktujemy jak "znajomy" (koperta znika)
+  bool _isFriend(String relationStatus) {
+    final s = relationStatus.trim().toLowerCase();
+    return s.contains('accept') || s.contains('friend');
+  }
+
+  // ---------------- COOLDOWN ----------------
+
+  void _loadCooldowns() {
+    try {
+      final raw = _prefs.getString(_cooldownPrefsKey);
+      if (raw == null || raw.trim().isEmpty) return;
+
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return;
+
+      _inviteCooldownUntilMs.clear();
+      for (final entry in decoded.entries) {
+        final key = entry.key.toString();
+        final val = entry.value;
+        if (val is int) _inviteCooldownUntilMs[key] = val;
+      }
+
+      _cleanupExpiredCooldowns();
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  Future<void> _saveCooldowns() async {
+    _cleanupExpiredCooldowns();
+    final raw = jsonEncode(_inviteCooldownUntilMs);
+    await _prefs.setString(_cooldownPrefsKey, raw);
+  }
+
+  void _cleanupExpiredCooldowns() {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    _inviteCooldownUntilMs.removeWhere((_, untilMs) => untilMs <= now);
+  }
+
+  bool _isInviteBlocked(String userName) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final until = _inviteCooldownUntilMs[userName] ?? 0;
+    return until > now;
+  }
+
+  Duration _inviteRemaining(String userName) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final until = _inviteCooldownUntilMs[userName] ?? 0;
+    final diffMs = until - now;
+    if (diffMs <= 0) return Duration.zero;
+    return Duration(milliseconds: diffMs);
+  }
+
+  String _formatDuration(Duration d) {
+    final totalMin = d.inMinutes;
+    final h = totalMin ~/ 60;
+    final m = totalMin % 60;
+    if (h <= 0) return '$m min';
+    return '${h}h ${m}m';
   }
 
   // ---------------- INTERNET ----------------
@@ -123,13 +196,7 @@ class _SearchScreenState extends State<SearchScreen> {
       );
 
       final data = res.data;
-
-      dynamic decoded;
-      if (data is String) {
-        decoded = jsonDecode(data);
-      } else {
-        decoded = data;
-      }
+      final decoded = data is String ? jsonDecode(data) : data;
 
       final list = (decoded as List)
           .map((e) => _UserSearchItem.fromJson(e as Map<String, dynamic>))
@@ -149,6 +216,53 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  // ---------------- INVITE (POST) ----------------
+
+  Future<void> _sendInvite(String userName) async {
+    if (_sendingInvites.contains(userName)) return;
+
+    if (_isInviteBlocked(userName)) {
+      final left = _inviteRemaining(userName);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Zaproszenie już wysłane. Spróbuj za ${_formatDuration(left)}.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _sendingInvites.add(userName));
+
+    try {
+      await _dio.post(
+        '/api/friends/requests',
+        data: {'userName': userName},
+        options: Options(headers: {'accept': '*/*'}),
+      );
+
+      final until = DateTime.now().add(_cooldown).millisecondsSinceEpoch;
+      _inviteCooldownUntilMs[userName] = until;
+      await _saveCooldowns();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Wysłano zaproszenie do $userName')),
+      );
+
+      setState(() {});
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nie udało się wysłać zaproszenia')),
+      );
+    } finally {
+      _sendingInvites.remove(userName);
+      if (mounted) setState(() {});
+    }
+  }
+
   // ---------------- UI ----------------
 
   @override
@@ -161,7 +275,6 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
-    // ✅ placeholder tylko przy braku internetu
     if (!_hasInternet) {
       return OfflinePlaceholder(
         message: 'Nie załadowano wyszukiwania',
@@ -199,10 +312,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   hintText: 'Szukaj...',
                   border: InputBorder.none,
                   prefixIcon: Icon(Icons.search, color: cs.onSurfaceVariant),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
+                  contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
             ),
@@ -210,10 +321,7 @@ class _SearchScreenState extends State<SearchScreen> {
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: Text(
-                  _error!,
-                  style: TextStyle(color: cs.error),
-                ),
+                child: Text(_error!, style: TextStyle(color: cs.error)),
               ),
             Expanded(
               child: _loadingList
@@ -226,9 +334,32 @@ class _SearchScreenState extends State<SearchScreen> {
                 const SizedBox(height: 10),
                 itemBuilder: (context, i) {
                   final u = _users[i];
+
+                  final isFriend = _isFriend(u.relationStatus);
+
+                  final blocked = _isInviteBlocked(u.userName);
+                  final sending = _sendingInvites.contains(u.userName);
+
+                  // ✅ POPRAWKA: kłódka ZAWSZE, koperta znika dla accepted/friend
+                  const showLock = true;
+                  final showInvite = !isFriend;
+
+                  final disabledInvite = blocked || sending;
+
+                  final tooltip = sending
+                      ? 'Wysyłanie...'
+                      : (blocked
+                      ? 'Możesz ponowić za ${_formatDuration(_inviteRemaining(u.userName))}'
+                      : 'Zaproś');
+
                   return _UserRow(
                     userName: u.userName,
                     relationStatus: u.relationStatus,
+                    showLock: showLock,
+                    showInvite: showInvite,
+                    inviteDisabled: disabledInvite,
+                    inviteTooltip: tooltip,
+                    onInvite: () => _sendInvite(u.userName),
                   );
                 },
               ),
@@ -262,15 +393,27 @@ class _UserSearchItem {
   }
 }
 
-// ---------------- ROW (jak na screenie) ----------------
+// ---------------- ROW ----------------
 
 class _UserRow extends StatelessWidget {
   final String userName;
   final String relationStatus;
 
+  final VoidCallback onInvite;
+  final bool inviteDisabled;
+  final String inviteTooltip;
+
+  final bool showLock;
+  final bool showInvite;
+
   const _UserRow({
     required this.userName,
     required this.relationStatus,
+    required this.onInvite,
+    required this.inviteDisabled,
+    required this.inviteTooltip,
+    required this.showLock,
+    required this.showInvite,
   });
 
   @override
@@ -298,16 +441,18 @@ class _UserRow extends StatelessWidget {
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
-          IconButton(
-            tooltip: 'Zablokuj (wkrótce)',
-            onPressed: () {}, // żeby nie było wyszarzone
-            icon: const Icon(Icons.lock_outline),
-          ),
-          IconButton(
-            tooltip: 'Zaproś (wkrótce)',
-            onPressed: () {}, // koperta zamiast kosza
-            icon: const Icon(Icons.mail_outline),
-          ),
+          if (showLock)
+            IconButton(
+              tooltip: 'Zablokuj (wkrótce)',
+              onPressed: () {},
+              icon: const Icon(Icons.lock_outline),
+            ),
+          if (showInvite)
+            IconButton(
+              tooltip: inviteTooltip,
+              onPressed: inviteDisabled ? null : onInvite,
+              icon: const Icon(Icons.mail_outline),
+            ),
         ],
       ),
     );

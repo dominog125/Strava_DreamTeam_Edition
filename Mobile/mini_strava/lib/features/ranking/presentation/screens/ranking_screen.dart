@@ -7,34 +7,27 @@ import 'package:mini_strava/core/widgets/offline_placeholder.dart';
 
 class RankingScreen extends StatefulWidget {
   const RankingScreen({super.key});
-
   @override
   State<RankingScreen> createState() => _RankingScreenState();
 }
 
 class _RankingScreenState extends State<RankingScreen> {
   late final Dio _dio;
-
   bool _loading = true;
   bool _offline = false;
   String? _error;
-
   final int _take = 5;
-
   late int _year;
   late int _month;
-
   _RankingResponse? _data;
 
   @override
   void initState() {
     super.initState();
     _dio = sl<ApiClient>().dio;
-
     final now = DateTime.now();
     _year = now.year;
     _month = now.month;
-
     _load();
   }
 
@@ -44,7 +37,6 @@ class _RankingScreenState extends State<RankingScreen> {
       _offline = false;
       _error = null;
     });
-
     try {
       final res = await _dio.get<Map<String, dynamic>>(
         '/api/user/stats/ranking/monthly',
@@ -55,10 +47,8 @@ class _RankingScreenState extends State<RankingScreen> {
         },
         options: Options(headers: {'accept': 'text/plain'}),
       );
-
       final map = (res.data ?? <String, dynamic>{});
       final parsed = _RankingResponse.fromJson(map);
-
       if (!mounted) return;
       setState(() {
         _data = parsed;
@@ -68,7 +58,6 @@ class _RankingScreenState extends State<RankingScreen> {
       final isOffline = e.error is SocketException ||
           e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout;
-
       if (!mounted) return;
       setState(() {
         _offline = isOffline;
@@ -101,9 +90,7 @@ class _RankingScreenState extends State<RankingScreen> {
     if (_offline) {
       return const Scaffold(body: OfflinePlaceholder());
     }
-
     final d = _data;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ranking miesięczny'),
@@ -161,7 +148,6 @@ class _FiltersCard extends StatelessWidget {
   final int year;
   final int month;
   final int take;
-
   final ValueChanged<int> onYearChanged;
   final ValueChanged<int> onMonthChanged;
 
@@ -176,73 +162,77 @@ class _FiltersCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final years = <int>{
-      now.year - 1,
-      now.year,
-      now.year + 1,
-    }.toList()
-      ..sort();
+    final years = <int>{now.year - 1, now.year, now.year + 1}.toList()..sort();
 
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                initialValue: year,
-                decoration: const InputDecoration(
-                  labelText: 'Rok',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                items: years
-                    .map(
-                      (y) => DropdownMenuItem(
-                    value: y,
-                    child: Text('$y'),
-                  ),
-                )
-                    .toList(),
-                onChanged: (v) => onYearChanged(v ?? year),
+    // ✅ kolor jak w FriendTile
+    final base = Theme.of(context).colorScheme.surfaceContainerHighest;
+    final tileColor = base.withAlpha((0.35 * 255).round());
+
+    return Container(
+      decoration: BoxDecoration(
+        color: tileColor,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Expanded(
+            child: DropdownButtonFormField<int>(
+              initialValue: year,
+              decoration: const InputDecoration(
+                labelText: 'Rok',
+                border: OutlineInputBorder(),
+                isDense: true,
               ),
+              items: years
+                  .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
+                  .toList(),
+              onChanged: (v) => onYearChanged(v ?? year),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                initialValue: month, // ✅ value -> initialValue
-                decoration: const InputDecoration(
-                  labelText: 'Miesiąc',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                items: List.generate(
-                  12,
-                      (i) => DropdownMenuItem(
-                    value: i + 1,
-                    child: Text('${i + 1}'.padLeft(2, '0')),
-                  ),
-                ),
-                onChanged: (v) => onMonthChanged(v ?? month),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: DropdownButtonFormField<int>(
+              initialValue: month,
+              decoration: const InputDecoration(
+                labelText: 'Miesiąc',
+                border: OutlineInputBorder(),
+                isDense: true,
               ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'TOP $take',
-                  style: Theme.of(context).textTheme.titleSmall,
+              items: List.generate(
+                12,
+                    (i) => DropdownMenuItem(
+                  value: i + 1,
+                  child: Text('${i + 1}'.padLeft(2, '0')),
                 ),
-                Text(
-                  'dystans (km)',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+              ),
+              onChanged: (v) => onMonthChanged(v ?? month),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'TOP $take',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.route, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    'dystans (km)',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -250,70 +240,116 @@ class _FiltersCard extends StatelessWidget {
 
 class _RankingCard extends StatelessWidget {
   final _RankingResponse data;
-
   const _RankingCard({required this.data});
 
   @override
   Widget build(BuildContext context) {
     final users = data.topUsers;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Ranking: ${data.year}-${data.month.toString().padLeft(2, '0')}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            if (users.isEmpty)
-              const Text('Brak danych do wyświetlenia')
-            else
-              ...List.generate(users.length, (i) {
-                final u = users[i];
-                final place = i + 1;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 28,
-                        child: Text(
-                          '$place.',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          u.userName,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ),
-                      Text(
-                        '${u.totalDistanceKm.toStringAsFixed(2)} km',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
-                );
-              }),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Ranking: ${data.year}-${data.month.toString().padLeft(2, '0')}',
+          style: Theme.of(context).textTheme.titleMedium,
         ),
+        const SizedBox(height: 12),
+        if (users.isEmpty)
+          const Text('Brak danych do wyświetlenia')
+        else
+          ...List.generate(users.length, (i) {
+            final u = users[i];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _RankingTile(
+                place: i + 1,
+                userName: u.userName,
+                distanceKm: u.totalDistanceKm,
+              ),
+            );
+          }),
+      ],
+    );
+  }
+}
+
+class _RankingTile extends StatelessWidget {
+  final int place;
+  final String userName;
+  final double distanceKm;
+
+  const _RankingTile({
+    required this.place,
+    required this.userName,
+    required this.distanceKm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // ✅ kolor jak w FriendTile
+    final base = Theme.of(context).colorScheme.surfaceContainerHighest;
+    final tileColor = base.withAlpha((0.35 * 255).round());
+
+    return Container(
+      decoration: BoxDecoration(
+        color: tileColor,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 30,
+            child: Text(
+              '$place.',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // ✅ avatar jak w FriendTile (CircleAvatar + Icon)
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: Colors.white.withValues(alpha: 0.08),
+            child: const Icon(Icons.person, size: 22, color: Colors.white70),
+          ),
+
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              userName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.route, color: Colors.white.withValues(alpha: 0.85), size: 18),
+              const SizedBox(width: 6),
+              Text(
+                '${distanceKm.toStringAsFixed(2)} km',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-
-
 class _RankingResponse {
   final int year;
   final int month;
   final List<_TopUser> topUsers;
-
   _RankingResponse({
     required this.year,
     required this.month,
@@ -323,15 +359,12 @@ class _RankingResponse {
   factory _RankingResponse.fromJson(Map<String, dynamic> j) {
     final year = (j['year'] is num) ? (j['year'] as num).toInt() : 0;
     final month = (j['month'] is num) ? (j['month'] as num).toInt() : 0;
-
     final raw = j['topUsers'];
     final list = (raw is List) ? raw : const <dynamic>[];
-
     final users = list
         .whereType<Map>()
         .map((e) => _TopUser.fromJson(e.cast<String, dynamic>()))
         .toList();
-
     return _RankingResponse(year: year, month: month, topUsers: users);
   }
 }
@@ -340,7 +373,6 @@ class _TopUser {
   final String userId;
   final String userName;
   final double totalDistanceKm;
-
   _TopUser({
     required this.userId,
     required this.userName,

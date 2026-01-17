@@ -31,18 +31,18 @@ class _SearchScreenState extends State<SearchScreen> {
   String? _error;
   List<_UserSearchItem> _users = [];
 
-  // cooldown (2h) dla zaproszen
+
   late final SharedPreferences _prefs;
-  final Map<String, int> _inviteCooldownUntilMs = {}; // userName -> epoch ms
-  final Set<String> _sendingInvites = {}; // userName
+  final Map<String, int> _inviteCooldownUntilMs = {};
+  final Set<String> _sendingInvites = {};
   static const int _take = 20;
   static const Duration _cooldown = Duration(hours: 2);
   static const String _cooldownPrefsKey = 'invite_cooldowns_v1';
 
-  // blokowanie (lokalny stan ikony)
-  static const String _blockedPrefsKey = 'blocked_users_v1'; // userId -> bool
+
+  static const String _blockedPrefsKey = 'blocked_users_v1';
   final Map<String, bool> _blockedByUserId = {};
-  final Set<String> _processingLock = {}; // userId
+  final Set<String> _processingLock = {};
 
   @override
   void initState() {
@@ -55,7 +55,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     _checkInternet().then((_) {
       if (_hasInternet) {
-        _fetchUsers(query: null); // ✅ po wejściu pokazujemy wszystkich
+        _fetchUsers(query: null);
       }
     });
 
@@ -70,8 +70,7 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  // ---------------- RELATION STATUS ----------------
-  // accepted/friend => traktujemy jak "znajomy" (koperta znika)
+
   bool _isFriend(String relationStatus) {
     final s = relationStatus.trim().toLowerCase();
     return s.contains('accept') || s.contains('friend');

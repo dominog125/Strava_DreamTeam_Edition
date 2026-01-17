@@ -1,7 +1,12 @@
 import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:mini_strava/core/di/injector.dart';
+import 'package:mini_strava/core/network/api_client.dart';
+
 import '../../../activity_history/domain/entities/activity_type.dart' as hist;
 import '../../../activity_history/domain/entities/gps_point.dart';
 
@@ -46,14 +51,23 @@ class ActivitySummaryScreen extends StatefulWidget {
 class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
   final _titleCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
+
   hist.ActivityType _type = hist.ActivityType.unknown;
   String? _photoPath;
   bool _saving = false;
+
+  late final Dio _dio;
+
+  // ✅ IDs z GET /api/ActivityCategories
+  static const String _catRun = '11111111-1111-1111-1111-111111111111'; // Bieg
+  static const String _catBike = '22222222-2222-2222-2222-222222222222'; // Rower
+  static const String _catHiking = '44444444-4444-4444-4444-444444444444'; // Hiking
 
   @override
   void initState() {
     super.initState();
     _type = widget.type;
+    _dio = sl<ApiClient>().dio;
   }
 
   @override
@@ -61,6 +75,19 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
     _titleCtrl.dispose();
     _noteCtrl.dispose();
     super.dispose();
+  }
+
+  String _activityCategoryIdForType(hist.ActivityType t) {
+    switch (t) {
+      case hist.ActivityType.run:
+        return _catRun;
+      case hist.ActivityType.bike:
+        return _catBike;
+      case hist.ActivityType.walk:
+        return _catHiking; // ✅ Spacer/Marsz => Hiking
+      case hist.ActivityType.unknown:
+        return _catRun; // fallback
+    }
   }
 
   String _formatDuration(Duration d) {
@@ -88,7 +115,8 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
   Future<void> _pickPhoto() async {
     try {
       final picker = ImagePicker();
-      final xfile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      final xfile =
+      await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
       if (xfile == null) return;
       setState(() => _photoPath = xfile.path);
     } catch (e) {
@@ -101,23 +129,108 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
 
   void _removePhoto() => setState(() => _photoPath = null);
 
+  Future<void> _postActivityToApi({
+    required String? title,
+    required String? note,
+    required String? usePhotoPath,
+    required String? mapPhotoPath,
+  }) async {
+    final name = (title ?? '').trim();
+    final description = (note ?? '').trim();
+
+    final activeSeconds = widget.duration.inSeconds;
+    final lengthKm = widget.distanceKm;
+    final pace = _paceMinPerKm(widget.distanceKm, widget.duration);
+    final speed = _avgSpeedKmH(widget.distanceKm, widget.duration);
+
+    // ✅ kluczowe: bierzemy ID kategorii z wybranego typu
+    final categoryId = _activityCategoryIdForType(_type);
+
+    final form = FormData();
+
+    form.fields
+      ..add(MapEntry('Name', name.isEmpty ? 'Aktywność' : name))
+      ..add(MapEntry('Description', description))
+      ..add(MapEntry('LengthInKm', lengthKm.toString()))
+      ..add(MapEntry('PaceMinPerKm', pace.toString()))
+      ..add(MapEntry('SpeedKmPerHour', speed.toString()))
+      ..add(MapEntry('ActiveSeconds', activeSeconds.toString()))
+      ..add(MapEntry('ActivityCategoryId', categoryId)); // ✅ tutaj
+
+    final up = (usePhotoPath ?? '').trim();
+    if (up.isNotEmpty && File(up).existsSync()) {
+      form.files.add(
+        MapEntry(
+          'UsePhoto',
+          await MultipartFile.fromFile(
+            up,
+            filename: up.split(Platform.pathSeparator).last,
+          ),
+        ),
+      );
+    }
+
+    final mp = (mapPhotoPath ?? '').trim();
+    if (mp.isNotEmpty && File(mp).existsSync()) {
+      form.files.add(
+        MapEntry(
+          'MapPhoto',
+          await MultipartFile.fromFile(
+            mp,
+            filename: mp.split(Platform.pathSeparator).last,
+          ),
+        ),
+      );
+    }
+
+    await _dio.post(
+      '/api/Activities/with-photos',
+      data: form,
+      options: Options(
+        headers: {'accept': 'text/plain'},
+        responseType: ResponseType.plain,
+      ),
+    );
+  }
+
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
 
     final title = _titleCtrl.text.trim();
     final note = _noteCtrl.text.trim();
+    final routePath = (widget.routeImagePath ?? '').trim();
 
-    if (!mounted) return;
-    Navigator.pop(
-      context,
-      ActivityMetaDraft(
-        type: _type,
+    try {
+      await _postActivityToApi(
         title: title.isEmpty ? null : title,
         note: note.isEmpty ? null : note,
-        photoPath: _photoPath,
-      ),
-    );
+        usePhotoPath: _photoPath,
+        mapPhotoPath: routePath.isEmpty ? null : routePath,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Zapisano aktywność ✅')),
+      );
+
+      Navigator.pop(
+        context,
+        ActivityMetaDraft(
+          type: _type,
+          title: title.isEmpty ? null : title,
+          note: note.isEmpty ? null : note,
+          photoPath: _photoPath,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się zapisać do API: $e')),
+      );
+      setState(() => _saving = false);
+    }
   }
 
   @override
@@ -138,7 +251,11 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
           TextButton(
             onPressed: _saving ? null : _save,
             child: _saving
-                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
                 : const Text('Zapisz'),
           ),
         ],
@@ -149,7 +266,6 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
           const SizedBox(height: 6),
           Text(dateText, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 14),
-
           DropdownButtonFormField<hist.ActivityType>(
             initialValue: _type,
             decoration: const InputDecoration(
@@ -157,14 +273,25 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
               border: OutlineInputBorder(),
             ),
             items: const [
-              DropdownMenuItem(value: hist.ActivityType.unknown, child: Text('Nie podano')),
-              DropdownMenuItem(value: hist.ActivityType.run, child: Text('Bieg')),
-              DropdownMenuItem(value: hist.ActivityType.bike, child: Text('Rower')),
-              DropdownMenuItem(value: hist.ActivityType.walk, child: Text('Spacer')),
+              DropdownMenuItem(
+                value: hist.ActivityType.unknown,
+                child: Text('Nie podano'),
+              ),
+              DropdownMenuItem(
+                value: hist.ActivityType.run,
+                child: Text('Bieg'),
+              ),
+              DropdownMenuItem(
+                value: hist.ActivityType.bike,
+                child: Text('Rower'),
+              ),
+              DropdownMenuItem(
+                value: hist.ActivityType.walk,
+                child: Text('Spacer'),
+              ),
             ],
             onChanged: (v) => setState(() => _type = v ?? hist.ActivityType.unknown),
           ),
-
           const SizedBox(height: 16),
           TextFormField(
             controller: _titleCtrl,
@@ -174,7 +301,6 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
               border: OutlineInputBorder(),
             ),
           ),
-
           const SizedBox(height: 16),
           TextFormField(
             controller: _noteCtrl,
@@ -185,7 +311,6 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
               border: OutlineInputBorder(),
             ),
           ),
-
           const SizedBox(height: 16),
           Card(
             child: Padding(
@@ -232,7 +357,6 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 16),
           Card(
             child: Padding(
@@ -259,7 +383,6 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 16),
           Card(
             child: Padding(
@@ -277,11 +400,13 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
                       _Stat(label: 'Dystans', value: '${widget.distanceKm.toStringAsFixed(2)} km'),
                       _Stat(
                         label: 'Tempo',
-                        value: '${_paceMinPerKm(widget.distanceKm, widget.duration).toStringAsFixed(1)} min/km',
+                        value:
+                        '${_paceMinPerKm(widget.distanceKm, widget.duration).toStringAsFixed(1)} min/km',
                       ),
                       _Stat(
                         label: 'Śr. prędkość',
-                        value: '${_avgSpeedKmH(widget.distanceKm, widget.duration).toStringAsFixed(1)} km/h',
+                        value:
+                        '${_avgSpeedKmH(widget.distanceKm, widget.duration).toStringAsFixed(1)} km/h',
                       ),
                     ],
                   ),

@@ -27,7 +27,7 @@ class AuthRemoteDataSource {
         'username': username,
         'password': password,
         'email': email,
-        'roles': [''],
+        'roles': [],
       },
     );
   }

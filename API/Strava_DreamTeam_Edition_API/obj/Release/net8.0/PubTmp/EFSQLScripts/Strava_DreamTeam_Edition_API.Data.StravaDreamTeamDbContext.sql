@@ -797,3 +797,573 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    ALTER TABLE [Activities] ADD [PhotoUrl1] nvarchar(max) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    ALTER TABLE [Activities] ADD [PhotoUrl2] nvarchar(max) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [Activities] SET [PhotoUrl1] = NULL, [PhotoUrl2] = NULL
+    WHERE [ID] = ''a1000000-0000-0000-0000-000000000001'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [Activities] SET [PhotoUrl1] = NULL, [PhotoUrl2] = NULL
+    WHERE [ID] = ''a1000000-0000-0000-0000-000000000002'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [Activities] SET [PhotoUrl1] = NULL, [PhotoUrl2] = NULL
+    WHERE [ID] = ''a2000000-0000-0000-0000-000000000001'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [Activities] SET [PhotoUrl1] = NULL, [PhotoUrl2] = NULL
+    WHERE [ID] = ''a2000000-0000-0000-0000-000000000002'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [Activities] SET [PhotoUrl1] = NULL, [PhotoUrl2] = NULL
+    WHERE [ID] = ''a3000000-0000-0000-0000-000000000001'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [Activities] SET [PhotoUrl1] = NULL, [PhotoUrl2] = NULL
+    WHERE [ID] = ''a4000000-0000-0000-0000-000000000001'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [Activities] SET [PhotoUrl1] = NULL, [PhotoUrl2] = NULL
+    WHERE [ID] = ''a5000000-0000-0000-0000-000000000001'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [Activities] SET [PhotoUrl1] = NULL, [PhotoUrl2] = NULL
+    WHERE [ID] = ''a5000000-0000-0000-0000-000000000002'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T14:18:44.5452518Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000002'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T14:18:44.5452521Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000003'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T14:18:44.5452522Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000004'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T14:18:44.5452524Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000005'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T14:18:44.5452526Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000006'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115141845_addactivityphotos'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260115141845_addactivityphotos', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115154814_AddAvatarToUserProfile1'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T15:48:14.5003608Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000002'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115154814_AddAvatarToUserProfile1'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T15:48:14.5003612Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000003'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115154814_AddAvatarToUserProfile1'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T15:48:14.5003614Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000004'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115154814_AddAvatarToUserProfile1'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T15:48:14.5003615Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000005'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115154814_AddAvatarToUserProfile1'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T15:48:14.5003617Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000006'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115154814_AddAvatarToUserProfile1'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260115154814_AddAvatarToUserProfile1', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115170112_AddAvatarToUserProfile2'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T17:01:11.7295361Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000002'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115170112_AddAvatarToUserProfile2'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T17:01:11.7295363Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000003'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115170112_AddAvatarToUserProfile2'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T17:01:11.7295365Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000004'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115170112_AddAvatarToUserProfile2'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T17:01:11.7295367Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000005'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115170112_AddAvatarToUserProfile2'
+)
+BEGIN
+    EXEC(N'UPDATE [UserProfiles] SET [UpdatedAt] = ''2026-01-15T17:01:11.7295368Z''
+    WHERE [UserId] = N''10000000-0000-0000-0000-000000000006'';
+    SELECT @@ROWCOUNT');
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115170112_AddAvatarToUserProfile2'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260115170112_AddAvatarToUserProfile2', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115171723_AddAvatarToUserProfile3'
+)
+BEGIN
+    ALTER TABLE [UserProfiles] ADD [Avatar] varbinary(max) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115171723_AddAvatarToUserProfile3'
+)
+BEGIN
+    ALTER TABLE [UserProfiles] ADD [AvatarContentType] nvarchar(100) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115171723_AddAvatarToUserProfile3'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260115171723_AddAvatarToUserProfile3', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115194819_RemoveActivityPhotoUrls'
+)
+BEGIN
+    DECLARE @var2 sysname;
+    SELECT @var2 = [d].[name]
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Activities]') AND [c].[name] = N'PhotoUrl1');
+    IF @var2 IS NOT NULL EXEC(N'ALTER TABLE [Activities] DROP CONSTRAINT [' + @var2 + '];');
+    ALTER TABLE [Activities] DROP COLUMN [PhotoUrl1];
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115194819_RemoveActivityPhotoUrls'
+)
+BEGIN
+    DECLARE @var3 sysname;
+    SELECT @var3 = [d].[name]
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Activities]') AND [c].[name] = N'PhotoUrl2');
+    IF @var3 IS NOT NULL EXEC(N'ALTER TABLE [Activities] DROP CONSTRAINT [' + @var3 + '];');
+    ALTER TABLE [Activities] DROP COLUMN [PhotoUrl2];
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115194819_RemoveActivityPhotoUrls'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260115194819_RemoveActivityPhotoUrls', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115202704_AddActivityPhotosBlob'
+)
+BEGIN
+    ALTER TABLE [Activities] ADD [Photo1] varbinary(max) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115202704_AddActivityPhotosBlob'
+)
+BEGIN
+    ALTER TABLE [Activities] ADD [Photo1ContentType] nvarchar(max) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115202704_AddActivityPhotosBlob'
+)
+BEGIN
+    ALTER TABLE [Activities] ADD [Photo2] varbinary(max) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115202704_AddActivityPhotosBlob'
+)
+BEGIN
+    ALTER TABLE [Activities] ADD [Photo2ContentType] nvarchar(max) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260115202704_AddActivityPhotosBlob'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260115202704_AddActivityPhotosBlob', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116004319_AddActivityCommentsAndLikes'
+)
+BEGIN
+    CREATE TABLE [ActivityComments] (
+        [Id] uniqueidentifier NOT NULL,
+        [ActivityId] uniqueidentifier NOT NULL,
+        [AuthorId] nvarchar(max) NOT NULL,
+        [Content] nvarchar(max) NOT NULL,
+        [CreatedAt] datetime2 NOT NULL,
+        CONSTRAINT [PK_ActivityComments] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ActivityComments_Activities_ActivityId] FOREIGN KEY ([ActivityId]) REFERENCES [Activities] ([ID]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116004319_AddActivityCommentsAndLikes'
+)
+BEGIN
+    CREATE TABLE [ActivityLikes] (
+        [Id] uniqueidentifier NOT NULL,
+        [ActivityId] uniqueidentifier NOT NULL,
+        [UserId] nvarchar(450) NOT NULL,
+        [CreatedAt] datetime2 NOT NULL,
+        CONSTRAINT [PK_ActivityLikes] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ActivityLikes_Activities_ActivityId] FOREIGN KEY ([ActivityId]) REFERENCES [Activities] ([ID]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116004319_AddActivityCommentsAndLikes'
+)
+BEGIN
+    CREATE INDEX [IX_ActivityComments_ActivityId] ON [ActivityComments] ([ActivityId]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116004319_AddActivityCommentsAndLikes'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_ActivityLikes_ActivityId_UserId] ON [ActivityLikes] ([ActivityId], [UserId]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116004319_AddActivityCommentsAndLikes'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260116004319_AddActivityCommentsAndLikes', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116165824_RenameActivityPhotosToUseAndMap'
+)
+BEGIN
+    EXEC sp_rename N'[Activities].[Photo2ContentType]', N'UsePhotoContentType', N'COLUMN';
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116165824_RenameActivityPhotosToUseAndMap'
+)
+BEGIN
+    EXEC sp_rename N'[Activities].[Photo2]', N'UsePhoto', N'COLUMN';
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116165824_RenameActivityPhotosToUseAndMap'
+)
+BEGIN
+    EXEC sp_rename N'[Activities].[Photo1ContentType]', N'MapPhotoContentType', N'COLUMN';
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116165824_RenameActivityPhotosToUseAndMap'
+)
+BEGIN
+    EXEC sp_rename N'[Activities].[Photo1]', N'MapPhoto', N'COLUMN';
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260116165824_RenameActivityPhotosToUseAndMap'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260116165824_RenameActivityPhotosToUseAndMap', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO
+

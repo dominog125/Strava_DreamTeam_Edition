@@ -1,75 +1,41 @@
-<div class="w-full max-w-md">
-    <div class="border-2 border-orange-500 rounded-2xl bg-gray-50/95 dark:bg-gray-800/95 shadow-xl p-8 sm:p-9">
-        <h1 class="text-center text-2xl font-bold tracking-wide mb-2">
-            Panel logowania
-        </h1>
+<form
+    method="post"
+    action="{{ route('login.process') }}"
+    class="space-y-4"
+    autocomplete="off"
+>
+    @csrf
 
-        <p class="text-center text-sm text-gray-600 dark:text-gray-300 mb-6">
-            Wpisz swój login i hasło, aby przejść do panelu administratora.
-        </p>
+    <x-ui.form-group :label="__('ui.login') . ':'" for="login" class="space-y-1.5">
+        <x-ui.form-input
+            id="login"
+            name="login"
+            type="text"
+            autocomplete="username"
+            :value="old('login')"
+        />
 
-        <form method="post" action="{{ route('login.process') }}" class="space-y-4" autocomplete="off">
-            @csrf
+        @error('login')
+            <p class="app-form-error">{{ $message }}</p>
+        @enderror
+    </x-ui.form-group>
 
-            <div class="space-y-1.5">
-                <label for="login" class="block text-sm font-semibold">
-                    Login:
-                </label>
-                <input
-                    id="login"
-                    name="login"
-                    type="text"
-                    autocomplete="username"
-                    value="{{ old('login') }}"
-                    class="block w-full rounded-xl border border-gray-300 dark:border-gray-600
-                           bg-white dark:bg-gray-900/80
-                           px-3 py-2 text-sm
-                           text-gray-900 dark:text-gray-100
-                           focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-                           transition"
-                >
-                @error('login')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-            </div>
+    <x-ui.form-group :label="__('ui.password') . ':'" for="password" class="space-y-1.5">
+        <x-ui.form-input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+        />
 
-            <div class="space-y-1.5">
-                <label for="password" class="block text-sm font-semibold">
-                    Hasło:
-                </label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autocomplete="current-password"
-                    class="block w-full rounded-xl border border-gray-300 dark:border-gray-600
-                           bg-white dark:bg-gray-900/80
-                           px-3 py-2 text-sm
-                           text-gray-900 dark:text-gray-100
-                           focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-                           transition"
-                >
-                @error('password')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-            </div>
+        @error('password')
+            <p class="app-form-error">{{ $message }}</p>
+        @enderror
+    </x-ui.form-group>
 
-            <div class="pt-2">
-                <button
-                    type="submit"
-                    class="w-full rounded-full
-                           bg-gradient-to-r from-orange-500 to-orange-600
-                           text-white font-semibold text-sm
-                           py-2.5
-                           shadow-lg shadow-orange-500/40
-                           hover:from-orange-600 hover:to-orange-700
-                           focus:outline-none focus:ring-2 focus:ring-orange-400
-                           focus:ring-offset-2 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900
-                           transition"
-                >
-                    Zaloguj się
-                </button>
-            </div>
-        </form>
+    <div class="pt-4 flex justify-center">
+        <x-ui.primary-button type="submit" class="px-8 py-3 text-sm">
+            {{ __('ui.sign_in') }}
+        </x-ui.primary-button>
     </div>
-</div>
+</form>

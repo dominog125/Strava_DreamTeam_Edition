@@ -37,9 +37,8 @@ return [
 
     'user_name' => 'Username',
     'email' => 'Email',
-    'created_at' => 'Created at',
-    'discord_connected' => 'Discord?',
-    'google_connected' => 'Google?',
+    'is_blocked' => 'Blocked?',
+    'lockout_end_utc' => 'Lockout until (UTC)',
 
     'discord' => 'Discord',
     'google' => 'Google',
@@ -73,4 +72,11 @@ return [
 
     'delete' => 'Delete',
     'confirm_delete_activity' => 'Are you sure you want to delete this activity?',
+    
+    'api_configuration_missing' => 'API configuration is missing.',
+    'api_connection_error' => 'Cannot connect to the API.',
+    'invalid_credentials' => 'Invalid email or password.',
+    'api_auth_error' => 'API authorization error.',
+    'api_invalid_response' => 'Invalid API response.',
+    'page_expired_try_again' => 'Your session has expired. Refresh the page and try again.',
 ];

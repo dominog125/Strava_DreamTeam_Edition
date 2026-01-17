@@ -5,6 +5,7 @@ namespace App\Infrastructure\Administration\Dashboard;
 use App\Application\Administration\Dashboard\AdministratorDashboardStatistics;
 use App\Application\Administration\Dashboard\AdministratorDashboardStatisticsReader;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -26,9 +27,14 @@ class ApiAdministratorDashboardStatisticsReader implements AdministratorDashboar
         }
 
         $jwtToken = (string) session('administrator.jwt', '');
+        $locale = App::getLocale();
 
         try {
-            $request = Http::acceptJson()->timeout($timeoutSeconds);
+            $request = Http::acceptJson()
+                ->timeout($timeoutSeconds)
+                ->withHeaders([
+                    'Accept-Language' => $locale,
+                ]);
 
             if ($jwtToken !== '') {
                 $request = $request->withToken($jwtToken);

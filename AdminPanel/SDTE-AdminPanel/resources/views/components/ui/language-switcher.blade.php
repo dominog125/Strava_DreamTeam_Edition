@@ -9,7 +9,7 @@
 <div class="flex items-center gap-2">
     @foreach ($items as $item)
         <a
-            href="{{ route('locale.switch', $item['locale']) }}"
+            href="{{ route('locale.switch', ['locale' => $item['locale']]) }}"
             @class([
                 'app-lang-button',
                 'app-lang-button-active' => $currentLocale === $item['locale'],

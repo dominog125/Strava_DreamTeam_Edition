@@ -3,13 +3,13 @@ import 'package:mini_strava/features/auth/presentation/controller/login_controll
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
   late final LoginController c;
+  bool _obscure = true; // ✅ oczko
 
   @override
   void initState() {
@@ -46,6 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 20),
+
                 TextFormField(
                   controller: c.emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -56,29 +57,34 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   validator: c.validateEmail,
                 ),
+
                 const SizedBox(height: 12),
+
+                // ✅ HASŁO z podglądem (oczko)
                 TextFormField(
                   controller: c.passwordController,
-                  obscureText: true,
+                  obscureText: _obscure,
                   textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Hasło',
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      onPressed: () => setState(() => _obscure = !_obscure),
+                      icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                    ),
                   ),
                   validator: c.validatePassword,
                   onFieldSubmitted: (_) async {
                     if (!c.isLoading) await c.submit(context);
                   },
                 ),
+
                 const SizedBox(height: 18),
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: c.isLoading
-                        ? null
-                        : () async {
-                      await c.submit(context);
-                    },
+                    onPressed: c.isLoading ? null : () async => c.submit(context),
                     child: c.isLoading
                         ? const SizedBox(
                       height: 18,
@@ -88,6 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const Text('Zaloguj'),
                   ),
                 ),
+
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -110,4 +117,5 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
 

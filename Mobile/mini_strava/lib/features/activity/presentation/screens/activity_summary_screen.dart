@@ -143,7 +143,7 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
     final pace = _paceMinPerKm(widget.distanceKm, widget.duration);
     final speed = _avgSpeedKmH(widget.distanceKm, widget.duration);
 
-    // ✅ kluczowe: bierzemy ID kategorii z wybranego typu
+
     final categoryId = _activityCategoryIdForType(_type);
 
     final form = FormData();
@@ -155,7 +155,7 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
       ..add(MapEntry('PaceMinPerKm', pace.toString()))
       ..add(MapEntry('SpeedKmPerHour', speed.toString()))
       ..add(MapEntry('ActiveSeconds', activeSeconds.toString()))
-      ..add(MapEntry('ActivityCategoryId', categoryId)); // ✅ tutaj
+      ..add(MapEntry('ActivityCategoryId', categoryId));
 
     final up = (usePhotoPath ?? '').trim();
     if (up.isNotEmpty && File(up).existsSync()) {

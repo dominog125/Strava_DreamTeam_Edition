@@ -1,47 +1,54 @@
-import 'dart:io';
+
+
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:mini_strava/core/di/injector.dart';
 import 'package:mini_strava/core/network/api_client.dart';
 import 'package:mini_strava/features/activity_history/domain/entities/activity_type.dart';
 
-class ActOgrDetailsScreen extends StatefulWidget {
+class ActOgrFriendDetailsScreen extends StatefulWidget {
   final String id;
-  const ActOgrDetailsScreen({super.key, required this.id});
+  final String otherUserId;
+  const ActOgrFriendDetailsScreen({
+    super.key,
+    required this.id,
+    required this.otherUserId,
+  });
 
   @override
-  State<ActOgrDetailsScreen> createState() => _ActOgrDetailsScreenState();
+  State<ActOgrFriendDetailsScreen> createState() =>
+      _ActOgrFriendDetailsScreenState();
 }
 
-class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
+class _ActOgrFriendDetailsScreenState extends State<ActOgrFriendDetailsScreen> {
   late final Dio _dio;
 
   bool _loading = true;
-  bool _saving = false;
   String? _error;
+
 
   ActivityType _type = ActivityType.unknown;
   DateTime? _date;
+  String _title = '';
+  String _note = '';
 
-  final _titleCtrl = TextEditingController();
-  final _noteCtrl = TextEditingController();
 
   int _activeSeconds = 0;
   double _distanceKm = 0;
   double _paceMinPerKm = 0;
   double _speedKmH = 0;
 
-  String? _usePhotoPath;
-  bool _markDeleteUsePhoto = false;
+
   Uint8List? _usePhotoBytes;
   Uint8List? _mapPhotoBytes;
 
+
   bool _categoriesLoaded = false;
-  final Map<ActivityType, String> _categoryIdByType = {};
   final Map<String, ActivityType> _typeByCategoryId = {};
+
 
   bool _likedByMe = false;
   int _likesCount = 0;
@@ -60,11 +67,10 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
 
   @override
   void dispose() {
-    _titleCtrl.dispose();
-    _noteCtrl.dispose();
     _commentCtrl.dispose();
     super.dispose();
   }
+
 
   Future<void> _loadAll() async {
     setState(() {
@@ -73,7 +79,7 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
     });
     try {
       await _loadCategories();
-      await _loadActivity();
+      await _loadActivityFromFriendEndpoint();
       await Future.wait([
         _loadUsePhoto(),
         _loadMapPhoto(),
@@ -99,8 +105,6 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
       );
       final data = res.data;
       final list = data is List ? data : <dynamic>[];
-
-      _categoryIdByType.clear();
       _typeByCategoryId.clear();
 
       for (final e in list) {
@@ -116,11 +120,7 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
         if (name.contains('spacer') || name.contains('walk') || name.contains('hiking')) {
           t = ActivityType.walk;
         }
-
-        if (t != null) {
-          _categoryIdByType[t] = id;
-          _typeByCategoryId[id] = t;
-        }
+        if (t != null) _typeByCategoryId[id] = t;
       }
       _categoriesLoaded = true;
     } catch (_) {
@@ -128,26 +128,44 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
     }
   }
 
-  Future<void> _loadActivity() async {
+  Future<void> _loadActivityFromFriendEndpoint() async {
     final res = await _dio.get(
-      '/api/Activities/${widget.id}',
-      options: Options(headers: {'accept': 'text/plain'}),
+      '/api/friends/${widget.otherUserId}/activities',
+      options: Options(
+        responseType: ResponseType.plain,
+        headers: {'accept': 'text/plain'},
+      ),
     );
-    final d = res.data;
 
-    _titleCtrl.text = (d['name'] ?? '').toString();
-    _noteCtrl.text = (d['description'] ?? '').toString();
-    _distanceKm = (d['lengthInKm'] ?? 0).toDouble();
-    _activeSeconds = (d['activeSeconds'] ?? 0).toInt();
-    _paceMinPerKm = (d['paceMinPerKm'] ?? 0).toDouble();
-    _speedKmH = (d['speedKmPerHour'] ?? 0).toDouble();
-    _date = DateTime.tryParse(d['createdAt']?.toString() ?? '');
+    final data = res.data;
+    final decoded = data is String ? jsonDecode(data) : data;
+    final list = (decoded is List) ? decoded : const <dynamic>[];
 
-    final catId = (d['activityCategoryId'] ?? '').toString().trim();
-    if (catId.isNotEmpty && _typeByCategoryId.containsKey(catId)) {
+    final match = list
+        .whereType<Map>()
+        .map((e) => e.cast<String, dynamic>())
+        .firstWhere(
+          (m) => (m['id'] ?? '').toString() == widget.id,
+      orElse: () => <String, dynamic>{},
+    );
+
+    if (match.isEmpty) {
+      throw Exception('Activity not found');
+    }
+
+    _title = (match['name'] ?? '').toString();
+    _note = (match['description'] ?? '').toString();
+    _distanceKm = (match['lengthInKm'] ?? 0).toDouble();
+    _activeSeconds = (match['activeSeconds'] ?? 0).toInt();
+    _paceMinPerKm = (match['paceMinPerKm'] ?? 0).toDouble();
+    _speedKmH = (match['speedKmPerHour'] ?? 0).toDouble();
+    _date = DateTime.tryParse(match['createdAt']?.toString() ?? '');
+
+    final catId = (match['activityCategoryId'] ?? '').toString().trim();
+    if (_categoriesLoaded && catId.isNotEmpty && _typeByCategoryId.containsKey(catId)) {
       _type = _typeByCategoryId[catId] ?? ActivityType.unknown;
     } else {
-      _type = _mapCategoryToType(d['categoryName']?.toString());
+      _type = _mapCategoryToType(match['categoryName']?.toString());
     }
   }
 
@@ -190,48 +208,6 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
         .whereType<Map>()
         .map((e) => _Comment.fromJson(e.cast<String, dynamic>()))
         .toList();
-  }
-
-  Future<void> _save() async {
-    if (_saving) return;
-    setState(() => _saving = true);
-    try {
-      await _dio.put(
-        '/api/Activities/${widget.id}',
-        data: {
-          'name': _titleCtrl.text.trim(),
-          'description': _noteCtrl.text.trim(),
-          'activityCategoryId': _mapTypeToCategoryId(_type),
-        },
-      );
-
-      if (_markDeleteUsePhoto) {
-        await _dio.delete('/api/Activities/${widget.id}/photos/use');
-      }
-
-      if (_usePhotoPath != null && !_markDeleteUsePhoto) {
-        final form = FormData.fromMap({
-          'UsePhoto': await MultipartFile.fromFile(
-            _usePhotoPath!,
-            filename: _usePhotoPath!.split('/').last,
-          ),
-        });
-        await _dio.post(
-          '/api/Activities/${widget.id}/photos',
-          data: form,
-          options: Options(headers: {'accept': '*/*'}),
-        );
-      }
-
-      if (!mounted) return;
-      Navigator.pop(context, true);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nie udało się zapisać')),
-      );
-    }
   }
 
 
@@ -280,34 +256,7 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
     }
   }
 
-  Future<void> _pickUsePhoto() async {
-    try {
-      final picker = ImagePicker();
-      final x = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 85,
-      );
-      if (x == null) return;
-      setState(() {
-        _usePhotoPath = x.path;
-        _markDeleteUsePhoto = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się wybrać zdjęcia: $e')),
-      );
-    }
-  }
-
-  void _markDeletePhoto() {
-    setState(() {
-      _usePhotoPath = null;
-      _usePhotoBytes = null;
-      _markDeleteUsePhoto = true;
-    });
-  }
-
+  // ================= HELPERS =================
   ActivityType _mapCategoryToType(String? name) {
     switch ((name ?? '').toLowerCase()) {
       case 'run':
@@ -325,22 +274,6 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
     }
   }
 
-  String _mapTypeToCategoryId(ActivityType t) {
-    if (_categoriesLoaded && _categoryIdByType.containsKey(t)) {
-      return _categoryIdByType[t]!;
-    }
-    switch (t) {
-      case ActivityType.run:
-        return '11111111-1111-1111-1111-111111111111';
-      case ActivityType.bike:
-        return '22222222-2222-2222-2222-222222222222';
-      case ActivityType.walk:
-        return '33333333-3333-3333-3333-333333333333';
-      case ActivityType.unknown:
-        return '44444444-4444-4444-4444-444444444444';
-    }
-  }
-
   String _formatDuration(int seconds) {
     final d = Duration(seconds: seconds);
     final h = d.inHours;
@@ -348,6 +281,20 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
     final s = d.inSeconds % 60;
     return h > 0 ? '${h}h ${m}m' : '${m}m ${s}s';
   }
+
+  String _typeLabel(ActivityType t) {
+    switch (t) {
+      case ActivityType.run:
+        return 'Bieg';
+      case ActivityType.bike:
+        return 'Rower';
+      case ActivityType.walk:
+        return 'Spacer';
+      case ActivityType.unknown:
+        return 'Nie podano';
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -359,21 +306,7 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Szczegóły aktywności'),
-        actions: [
-          TextButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-                : const Text('Zapisz'),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Szczegóły aktywności')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -388,62 +321,39 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
           ),
           const SizedBox(height: 16),
 
-          DropdownButtonFormField<ActivityType>(
-            initialValue: _type,
-            decoration: const InputDecoration(
-              labelText: 'Typ aktywności',
-              border: OutlineInputBorder(),
-            ),
-            items: const [
-              DropdownMenuItem(value: ActivityType.unknown, child: Text('Nie podano')),
-              DropdownMenuItem(value: ActivityType.run, child: Text('Bieg')),
-              DropdownMenuItem(value: ActivityType.bike, child: Text('Rower')),
-              DropdownMenuItem(value: ActivityType.walk, child: Text('Spacer')),
-            ],
-            onChanged: (v) => setState(() => _type = v ?? ActivityType.unknown),
-          ),
 
+          _ReadOnlyField(label: 'Typ aktywności', value: _typeLabel(_type)),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _titleCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Nazwa aktywności',
-              hintText: 'np. Interwały czasowe',
-              border: OutlineInputBorder(),
-            ),
+          _ReadOnlyField(
+            label: 'Nazwa aktywności',
+            value: _title.trim().isEmpty ? '-' : _title.trim(),
           ),
-
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _noteCtrl,
-            maxLines: 5,
-            decoration: const InputDecoration(
-              labelText: 'Notatka',
-              hintText: 'Dodaj notatkę…',
-              border: OutlineInputBorder(),
-            ),
+          _ReadOnlyField(
+            label: 'Notatka',
+            value: _note.trim().isEmpty ? '-' : _note.trim(),
+            multiline: true,
           ),
-
           const SizedBox(height: 16),
-          _UsePhotoCard(
-            bytes: _usePhotoBytes,
-            localPath: _usePhotoPath,
-            onPick: _pickUsePhoto,
-            onDelete: _markDeletePhoto,
-          ),
 
+          // ===== PHOTO (READ ONLY) =====
+          _UsePhotoReadOnlyCard(bytes: _usePhotoBytes),
           const SizedBox(height: 16),
+
+          // ===== MAP =====
           _MapCard(bytes: _mapPhotoBytes),
-
           const SizedBox(height: 16),
+
+          // ===== STATS =====
           _StatsCard(
             duration: _formatDuration(_activeSeconds),
             distance: _distanceKm,
             pace: _paceMinPerKm,
             speed: _speedKmH,
           ),
-
           const SizedBox(height: 16),
+
+          // ===== LIKES =====
           Row(
             children: [
               IconButton(
@@ -456,8 +366,9 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
               Text('$_likesCount'),
             ],
           ),
-
           const SizedBox(height: 8),
+
+
           _CommentsSection(
             comments: _comments,
             controller: _commentCtrl,
@@ -470,24 +381,41 @@ class _ActOgrDetailsScreenState extends State<ActOgrDetailsScreen> {
   }
 }
 
-class _UsePhotoCard extends StatelessWidget {
-  final Uint8List? bytes;
-  final String? localPath;
-  final VoidCallback onPick;
-  final VoidCallback onDelete;
 
-  const _UsePhotoCard({
-    required this.bytes,
-    required this.localPath,
-    required this.onPick,
-    required this.onDelete,
+class _ReadOnlyField extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool multiline;
+
+  const _ReadOnlyField({
+    required this.label,
+    required this.value,
+    this.multiline = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasLocal = (localPath ?? '').trim().isNotEmpty;
-    final hasBytes = bytes != null && bytes!.isNotEmpty;
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      child: Text(
+        value,
+        style: Theme.of(context).textTheme.bodyMedium,
+        maxLines: multiline ? null : 2,
+      ),
+    );
+  }
+}
 
+class _UsePhotoReadOnlyCard extends StatelessWidget {
+  final Uint8List? bytes;
+  const _UsePhotoReadOnlyCard({required this.bytes});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasBytes = bytes != null && bytes!.isNotEmpty;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -501,33 +429,15 @@ class _UsePhotoCard extends StatelessWidget {
               child: SizedBox(
                 height: 180,
                 width: double.infinity,
-                child: hasLocal
-                    ? Image.file(File(localPath!), fit: BoxFit.cover)
-                    : hasBytes
+                child: hasBytes
                     ? Image.memory(bytes!, fit: BoxFit.cover)
                     : Container(
                   color: Colors.black12,
-                  child: const Center(child: Icon(Icons.image_outlined, size: 48)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onPick,
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: Text(hasLocal || hasBytes ? 'Zmień zdjęcie' : 'Dodaj zdjęcie'),
+                  child: const Center(
+                    child: Icon(Icons.image_outlined, size: 48),
                   ),
                 ),
-                const SizedBox(width: 12),
-                IconButton(
-                  onPressed: (hasLocal || hasBytes) ? onDelete : null,
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Usuń zdjęcie',
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -560,7 +470,9 @@ class _MapCard extends StatelessWidget {
                     ? Image.memory(bytes!, fit: BoxFit.cover)
                     : Container(
                   color: Colors.black12,
-                  child: const Center(child: Icon(Icons.map_outlined, size: 48)),
+                  child: const Center(
+                    child: Icon(Icons.map_outlined, size: 48),
+                  ),
                 ),
               ),
             ),
@@ -674,10 +586,14 @@ class _TypeChip extends StatelessWidget {
         fontSize: big ? 14 : 12,
         fontWeight: big ? FontWeight.w600 : FontWeight.normal,
       ),
-      padding: EdgeInsets.symmetric(horizontal: big ? 10 : 6, vertical: big ? 6 : 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: big ? 10 : 6,
+        vertical: big ? 6 : 2,
+      ),
     );
   }
 }
+
 
 class _Comment {
   final String author;
@@ -692,8 +608,7 @@ class _Comment {
 
   static String _pickAuthor(Map<String, dynamic> j) {
     final s = (j['authorUserName'] ?? '').toString().trim();
-    if (s.isNotEmpty) return s;
-    return 'Użytkownik';
+    return s.isNotEmpty ? s : 'Użytkownik';
   }
 
   factory _Comment.fromJson(Map<String, dynamic> j) => _Comment(

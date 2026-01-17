@@ -1,5 +1,21 @@
 [
   {
+    "ContainingType": "Program\u002B\u003C\u003Ec",
+    "Method": "\u003C\u003CMain\u003E$\u003Eb__0_6",
+    "RelativePath": "",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivitiesController",
     "Method": "GetAll",
     "RelativePath": "api/Activities",
@@ -77,6 +93,184 @@
     "ReturnTypes": [
       {
         "Type": "Strava_DreamTeam_Edition_API.Models.DTO.ActivityDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivityCommentsController",
+    "Method": "GetAll",
+    "RelativePath": "api/activities/{activityId}/comments",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "activityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[Strava_DreamTeam_Edition_API.Models.DTO.ActivityCommentDto, Strava_DreamTeam_Edition_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivityCommentsController",
+    "Method": "Create",
+    "RelativePath": "api/activities/{activityId}/comments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "activityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "Strava_DreamTeam_Edition_API.Models.DTO.CreateCommentRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivityCommentsController",
+    "Method": "Delete",
+    "RelativePath": "api/activities/{activityId}/comments/{commentId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "activityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "commentId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivityCommentsController",
+    "Method": "GetCount",
+    "RelativePath": "api/activities/{activityId}/comments/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "activityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Int32",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivityLikesController",
+    "Method": "Like",
+    "RelativePath": "api/activities/{activityId}/likes",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "activityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivityLikesController",
+    "Method": "Unlike",
+    "RelativePath": "api/activities/{activityId}/likes",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "activityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivityLikesController",
+    "Method": "GetCount",
+    "RelativePath": "api/activities/{activityId}/likes/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "activityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Int32",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivityLikesController",
+    "Method": "IsLikedByMe",
+    "RelativePath": "api/activities/{activityId}/likes/me",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "activityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Boolean",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -195,6 +389,74 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivitiesController",
+    "Method": "UploadPhotosToDb",
+    "RelativePath": "api/Activities/{id}/photos",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "Photo1",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "Photo2",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivitiesController",
+    "Method": "GetPhoto",
+    "RelativePath": "api/Activities/{id}/photos/{slot}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "slot",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivitiesController",
+    "Method": "DeletePhoto",
+    "RelativePath": "api/Activities/{id}/photos/{slot}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "slot",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ActivityCategoriesController",
@@ -441,7 +703,13 @@
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "status",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": [
       {
         "Type": "System.Collections.Generic.IEnumerable\u00601[[Strava_DreamTeam_Edition_API.Models.DTO.FriendDto, Strava_DreamTeam_Edition_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
@@ -659,6 +927,37 @@
     ]
   },
   {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.FriendsController",
+    "Method": "SearchUsers",
+    "RelativePath": "api/friends/search",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "query",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "take",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[Strava_DreamTeam_Edition_API.Models.DTO.UserSearchResultDto, Strava_DreamTeam_Edition_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ProfileController",
     "Method": "GetMe",
     "RelativePath": "api/profile/me",
@@ -693,5 +992,77 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ProfileController",
+    "Method": "UploadAvatar",
+    "RelativePath": "api/profile/me/avatar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "File",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ProfileController",
+    "Method": "GetMyAvatar",
+    "RelativePath": "api/profile/me/avatar",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.ProfileController",
+    "Method": "DeleteMyAvatar",
+    "RelativePath": "api/profile/me/avatar",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.UserStatsController",
+    "Method": "GetMonthlyDistanceRanking",
+    "RelativePath": "api/user/stats/ranking/monthly",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "year",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "month",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "take",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Strava_DreamTeam_Edition_API.Models.DTO.MonthlyDistanceRankingDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   }
 ]

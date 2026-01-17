@@ -12,9 +12,11 @@ namespace Strava_DreamTeam_Edition_API.Models.DTO
         // NOWE
         public decimal? PaceMinPerKm { get; set; }
         public decimal? SpeedKmPerHour { get; set; }
+        public int ActiveSeconds { get; set; }
         public Guid ActivityCategoryId { get; set; }
         public string? CategoryName { get; set; }
         public DateTime? CreatedAt { get; set; }
+
     }
 
     public class CreateActivityRequest
@@ -24,7 +26,11 @@ namespace Strava_DreamTeam_Edition_API.Models.DTO
         public decimal? LengthInKm { get; set; }
         public decimal? PaceMinPerKm { get; set; }
         public decimal? SpeedKmPerHour { get; set; }
+        public int ActiveSeconds { get; set; }
         public Guid ActivityCategoryId { get; set; }
+        public IFormFile? Photo1 { get; set; }
+        public IFormFile? Photo2 { get; set; }
+
     }
     public class ActivityQuery
     {
@@ -48,9 +54,12 @@ namespace Strava_DreamTeam_Edition_API.Models.DTO
         public string? Name { get; set; }
         public string? Description { get; set; }
         public decimal? LengthInKm { get; set; }
+        public int? ActiveSeconds { get; set; }
+
         // NOWE
         public decimal? PaceMinPerKm { get; set; }
         public decimal? SpeedKmPerHour { get; set; }
         public Guid ActivityCategoryId { get; set; }
+
     }
 }

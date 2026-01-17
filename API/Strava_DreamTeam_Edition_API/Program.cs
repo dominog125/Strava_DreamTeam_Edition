@@ -94,15 +94,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 var app = builder.Build();
 
 app.UseCors("AllowFrontend");
-// Configure the HTTP request pipeline.
-/*if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}*/
-app.UseSwagger();
-app.UseSwaggerUI();
 
+
+
+app.UseSwagger(c =>
+{
+    c.RouteTemplate = "api/documentation/{documentName}/swagger.json";
+});
+
+app.UseSwaggerUI(c =>
+{
+    c.RoutePrefix = "api/documentation";
+    c.SwaggerEndpoint("/api/documentation/v1/swagger.json", "Strava API v1");
+});
+
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

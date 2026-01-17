@@ -23,13 +23,17 @@
 
         // === TRACKING ===
         public ActivityStatus Status { get; set; }
-
         public DateTime StartedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
-        // NOWE POLA
-        public decimal? PaceMinPerKm { get; set; }   // tempo
-        public decimal? SpeedKmPerHour { get; set; } // prędkość
+
+        public decimal? PaceMinPerKm { get; set; }
+        public decimal? SpeedKmPerHour { get; set; }
         public int ActiveSeconds { get; set; }
+        public byte[]? UsePhoto { get; set; }
+        public string? UsePhotoContentType { get; set; }
+
+        public byte[]? MapPhoto { get; set; }
+        public string? MapPhotoContentType { get; set; }
 
         public ICollection<ActivityGpsPoint> GpsPoints { get; set; } = new List<ActivityGpsPoint>();
     }

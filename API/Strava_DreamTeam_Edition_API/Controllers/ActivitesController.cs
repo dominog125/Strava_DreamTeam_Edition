@@ -100,6 +100,7 @@ namespace Strava_DreamTeam_Edition_API.Controllers
                     LengthInKm = a.LengthInKm,
                     PaceMinPerKm = a.PaceMinPerKm,
                     SpeedKmPerHour = a.SpeedKmPerHour,
+                    ActiveSeconds = a.ActiveSeconds,
                     AuthorId = a.AuthorId,
                     ActivityCategoryId = a.CategoryId,
                     CategoryName = a.Category != null ? a.Category.Name : null,
@@ -140,6 +141,7 @@ namespace Strava_DreamTeam_Edition_API.Controllers
                     LengthInKm = a.LengthInKm,
                     PaceMinPerKm = a.PaceMinPerKm,
                     SpeedKmPerHour = a.SpeedKmPerHour,
+                    ActiveSeconds = a.ActiveSeconds,
                     AuthorId = a.AuthorId,
                     ActivityCategoryId = a.CategoryId,
                     CategoryName = a.Category != null ? a.Category.Name : null,
@@ -152,6 +154,32 @@ namespace Strava_DreamTeam_Edition_API.Controllers
 
             return Ok(item);
         }
+        [Authorize(Roles = "User,Admin")]
+        [HttpGet("{id:guid}/photos/{type}")]
+        public async Task<IActionResult> GetPhoto(Guid id, string type, CancellationToken ct)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+
+            var isAdmin = User.IsInRole("Admin");
+
+            var item = await _db.Activities
+                .AsNoTracking()
+                .Where(a => a.ID == id)
+                .Select(a => new
+                {
+                    a.AuthorId,
+                    Photo = type == "use" ? a.UsePhoto : a.MapPhoto,
+                    ContentType = type == "use" ? a.UsePhotoContentType : a.MapPhotoContentType
+                })
+                .FirstOrDefaultAsync(ct);
+
+            if (item == null || item.Photo == null) return NotFound();
+            if (!isAdmin && item.AuthorId != userId) return Forbid();
+
+            return File(item.Photo, item.ContentType!);
+        }
+
 
         // POST: api/activities
         // AuthorId zawsze z tokena
@@ -181,6 +209,7 @@ namespace Strava_DreamTeam_Edition_API.Controllers
                 LengthInKm = request.LengthInKm.Value,
                 PaceMinPerKm = request.PaceMinPerKm,
                 SpeedKmPerHour = request.SpeedKmPerHour,
+                ActiveSeconds = request.ActiveSeconds,
                 AuthorId = userId,
                 CategoryId = request.ActivityCategoryId,
                 CreatedAt = DateTime.UtcNow
@@ -199,6 +228,9 @@ namespace Strava_DreamTeam_Edition_API.Controllers
                     Name = a.Name,
                     Description = a.Description,
                     LengthInKm = a.LengthInKm,
+                    PaceMinPerKm = a.PaceMinPerKm,
+                    SpeedKmPerHour = a.SpeedKmPerHour,
+                    ActiveSeconds = a.ActiveSeconds,
                     AuthorId = a.AuthorId,
                     ActivityCategoryId = a.CategoryId,
                     CategoryName = a.Category != null ? a.Category.Name : null,
@@ -208,6 +240,126 @@ namespace Strava_DreamTeam_Edition_API.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
+
+        [Authorize(Roles = "User,Admin")]
+        [HttpPost("{id:guid}/photos")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadPhotos(Guid id, [FromForm] UploadActivityPhotosRequest req, CancellationToken ct)
+        {
+            var entity = await _db.Activities.FirstOrDefaultAsync(a => a.ID == id, ct);
+            if (entity == null) return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && entity.AuthorId != userId) return Forbid();
+
+            if (req.UsePhoto != null)
+            {
+                using var ms = new MemoryStream();
+                await req.UsePhoto.CopyToAsync(ms, ct);
+                entity.UsePhoto = ms.ToArray();
+                entity.UsePhotoContentType = req.UsePhoto.ContentType;
+            }
+
+            if (req.MapPhoto != null)
+            {
+                using var ms = new MemoryStream();
+                await req.MapPhoto.CopyToAsync(ms, ct);
+                entity.MapPhoto = ms.ToArray();
+                entity.MapPhotoContentType = req.MapPhoto.ContentType;
+            }
+
+            await _db.SaveChangesAsync(ct);
+            return NoContent();
+        }
+
+        [Authorize(Roles = "User,Admin")]
+        [HttpPost("with-photos")]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(15 * 1024 * 1024)]
+        public async Task<ActionResult<ActivityDto>> CreateWithPhotos([FromForm] CreateActivityWithPhotosRequest request,CancellationToken ct)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
+            if (request.LengthInKm is null)
+                return BadRequest("LengthInKm jest wymagane.");
+
+            var categoryExists = await _db.ActivityCategories
+                .AsNoTracking()
+                .AnyAsync(c => c.ID == request.ActivityCategoryId, ct);
+
+            if (!categoryExists)
+                return BadRequest($"ActivityCategoryId '{request.ActivityCategoryId}' nie istnieje.");
+
+            var entity = new Activity
+            {
+                ID = Guid.NewGuid(),
+                Name = request.Name ?? string.Empty,
+                Description = request.Description ?? string.Empty,
+                LengthInKm = request.LengthInKm.Value,
+                PaceMinPerKm = request.PaceMinPerKm,
+                SpeedKmPerHour = request.SpeedKmPerHour,
+                ActiveSeconds = request.ActiveSeconds,
+                AuthorId = userId,
+                CategoryId = request.ActivityCategoryId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Minimalna walidacja zdjęć + zapis do BLOB
+            const long maxBytes = 5 * 1024 * 1024;
+
+            if (request.UsePhoto != null)
+            {
+                if (request.UsePhoto.Length <= 0 || request.UsePhoto.Length > maxBytes) return BadRequest("UsePhoto: max 5MB.");
+                if (!request.UsePhoto.ContentType.StartsWith("image/")) return BadRequest("UsePhoto: musi być obrazem.");
+
+                await using var ms = new MemoryStream();
+                await request.UsePhoto.CopyToAsync(ms, ct);
+                entity.UsePhoto = ms.ToArray();
+                entity.UsePhotoContentType = request.UsePhoto.ContentType;
+            }
+
+            if (request.MapPhoto != null)
+            {
+                if (request.MapPhoto.Length <= 0 || request.MapPhoto.Length > maxBytes) return BadRequest("MapPhoto: max 5MB.");
+                if (!request.MapPhoto.ContentType.StartsWith("image/")) return BadRequest("MapPhoto: musi być obrazem.");
+
+                await using var ms = new MemoryStream();
+                await request.MapPhoto.CopyToAsync(ms, ct);
+                entity.MapPhoto = ms.ToArray();
+                entity.MapPhotoContentType = request.MapPhoto.ContentType;
+            }
+
+            _db.Activities.Add(entity);
+            await _db.SaveChangesAsync(ct);
+
+            // Zwróć DTO (bez blobów)
+            var created = await _db.Activities
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .Where(a => a.ID == entity.ID)
+                .Select(a => new ActivityDto
+                {
+                    Id = a.ID,
+                    Name = a.Name,
+                    Description = a.Description,
+                    LengthInKm = a.LengthInKm,
+                    PaceMinPerKm = a.PaceMinPerKm,
+                    SpeedKmPerHour = a.SpeedKmPerHour,
+                    AuthorId = a.AuthorId,
+                    ActivityCategoryId = a.CategoryId,
+                    CategoryName = a.Category != null ? a.Category.Name : null,
+                    CreatedAt = a.CreatedAt,
+  
+                })
+                .FirstAsync(ct);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
+
+
 
         // PUT: api/activities/{id}
         // User: tylko swoje
@@ -240,7 +392,9 @@ namespace Strava_DreamTeam_Edition_API.Controllers
             entity.LengthInKm = request.LengthInKm ?? entity.LengthInKm;
             entity.PaceMinPerKm = request.PaceMinPerKm ?? entity.PaceMinPerKm;
             entity.SpeedKmPerHour = request.SpeedKmPerHour ?? entity.SpeedKmPerHour;
+            entity.ActiveSeconds = request.ActiveSeconds ?? entity.ActiveSeconds;
             entity.CategoryId = request.ActivityCategoryId;
+
 
             await _db.SaveChangesAsync(ct);
             return NoContent();
@@ -270,6 +424,136 @@ namespace Strava_DreamTeam_Edition_API.Controllers
 
             return NoContent();
         }
+
+        [Authorize(Roles = "User,Admin")]
+        [HttpGet("{id:guid}/photos/use")]
+        public async Task<IActionResult> GetUsePhoto(Guid id, CancellationToken ct)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            var item = await _db.Activities
+                .AsNoTracking()
+                .Where(a => a.ID == id)
+                .Select(a => new { a.AuthorId, a.UsePhoto, a.UsePhotoContentType })
+                .FirstOrDefaultAsync(ct);
+
+            if (item == null || item.UsePhoto == null) return NotFound();
+            if (!isAdmin && item.AuthorId != userId) return Forbid();
+
+            return File(item.UsePhoto, item.UsePhotoContentType!);
+        }
+
+        [Authorize(Roles = "User,Admin")]
+        [HttpDelete("{id:guid}/photos/use")]
+        public async Task<IActionResult> DeleteUsePhoto(Guid id, CancellationToken ct)
+        {
+            var entity = await _db.Activities.FirstOrDefaultAsync(a => a.ID == id, ct);
+            if (entity == null)
+                return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && entity.AuthorId != userId)
+                return Forbid();
+
+            if (entity.UsePhoto == null)
+                return NotFound();
+
+            entity.UsePhoto = null;
+            entity.UsePhotoContentType = null;
+
+            await _db.SaveChangesAsync(ct);
+            return NoContent();
+        }
+
+
+        [Authorize(Roles = "User,Admin")]
+        [HttpGet("{id:guid}/photos/map")]
+        public async Task<IActionResult> GetMapPhoto(Guid id, CancellationToken ct)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            var item = await _db.Activities
+                .AsNoTracking()
+                .Where(a => a.ID == id)
+                .Select(a => new { a.AuthorId, a.MapPhoto, a.MapPhotoContentType })
+                .FirstOrDefaultAsync(ct);
+
+            if (item == null || item.MapPhoto == null) return NotFound();
+            if (!isAdmin && item.AuthorId != userId) return Forbid();
+
+            return File(item.MapPhoto, item.MapPhotoContentType!);
+        }
+
+        [Authorize(Roles = "User,Admin")]
+        [HttpGet("{id:guid}/with-photos")]
+        public async Task<ActionResult<ActivityWithPhotosDto>> GetByIdWithPhotos(Guid id, CancellationToken ct)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
+            var isAdmin = User.IsInRole("Admin");
+
+            var item = await _db.Activities
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .Where(a => a.ID == id)
+                .Select(a => new
+                {
+                    a.ID,
+                    a.Name,
+                    a.Description,
+                    a.LengthInKm,
+                    a.PaceMinPerKm,
+                    a.SpeedKmPerHour,
+                    a.ActiveSeconds,
+                    a.AuthorId,
+                    a.CategoryId,
+                    CategoryName = a.Category != null ? a.Category.Name : null,
+                    a.CreatedAt,
+
+                    a.UsePhoto,
+                    a.UsePhotoContentType,
+                    a.MapPhoto,
+                    a.MapPhotoContentType
+                })
+                .FirstOrDefaultAsync(ct);
+
+            if (item == null)
+                return NotFound();
+
+            if (!isAdmin && item.AuthorId != userId)
+                return Forbid();
+
+            var dto = new ActivityWithPhotosDto
+            {
+                Id = item.ID,
+                Name = item.Name,
+                Description = item.Description,
+                LengthInKm = item.LengthInKm,
+                PaceMinPerKm = item.PaceMinPerKm,
+                SpeedKmPerHour = item.SpeedKmPerHour,
+                AuthorId = item.AuthorId,
+                ActivityCategoryId = item.CategoryId,
+                CategoryName = item.CategoryName,
+                CreatedAt = item.CreatedAt,
+
+                UsePhotoBase64 = item.UsePhoto != null ? Convert.ToBase64String(item.UsePhoto) : null,
+                UsePhotoContentType = item.UsePhotoContentType,
+
+                MapPhotoBase64 = item.MapPhoto != null ? Convert.ToBase64String(item.MapPhoto) : null,
+                MapPhotoContentType = item.MapPhotoContentType
+            };
+
+            return Ok(dto);
+        }
+
 
         [Authorize]
         [HttpPost("{id:guid}/gps")]

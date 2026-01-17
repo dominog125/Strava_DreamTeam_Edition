@@ -10,7 +10,6 @@ import 'package:mini_strava/features/activity_history/domain/usecases/get_user_s
 import 'package:mini_strava/features/activity_history/domain/entities/user_stats.dart';
 import 'package:mini_strava/features/profile/domain/entities/user_profile.dart';
 import 'package:mini_strava/features/activity_history/data/datasources/activity_history_local_data_source.dart';
-
 import '../controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -42,7 +41,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     c.addListener(_onChanged);
     c.load();
-
     _loadStats();
 
     _boxSub = _historyLocal.box.watch().listen((_) {
@@ -92,7 +90,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final birthDateText =
     c.birthDate == null ? '-' : DateFormat('yyyy-MM-dd').format(c.birthDate!);
-
     final fullName = '${c.firstName.text} ${c.lastName.text}'.trim();
     final heightText = _withUnitOrDash(c.heightCm.text, 'cm');
     final weightText = _withUnitOrDash(c.weightKg.text, 'kg');
@@ -149,9 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             CircleAvatar(
               radius: 48,
               backgroundImage: avatarProvider,
-              child: avatarProvider == null
-                  ? const Icon(Icons.person, size: 48)
-                  : null,
+              child: avatarProvider == null ? const Icon(Icons.person, size: 48) : null,
             ),
             const SizedBox(height: 16),
             Text(
@@ -192,6 +187,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _InfoRow(label: 'Wzrost', value: heightText),
             _InfoRow(label: 'Waga', value: weightText),
             const SizedBox(height: 32),
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -201,6 +197,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 12),
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -213,6 +210,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label: const Text('Historia aktywności'),
               ),
             ),
+
+            // ✅ NOWY PRZYCISK: identyczny, ale prowadzi do nowej strony act_ogr_history
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.actOgrHistory),
+                icon: const Icon(Icons.history), // identyczna ikonka jak wyżej
+                label: const Text('Historia aktywności'), // identyczny tekst jak wyżej
+              ),
+            ),
+
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
@@ -301,3 +310,4 @@ class _StatTile extends StatelessWidget {
     );
   }
 }
+

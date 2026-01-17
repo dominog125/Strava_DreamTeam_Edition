@@ -21,6 +21,7 @@ import '../../features/invites/presentation/screens/invites_inbox_screen.dart';
 
 import '../../features/ranking/presentation/screens/ranking_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
+import 'package:mini_strava/features/act_ogr_history/presentation/screens/act_ogr_history_screen.dart';
 
 
 class AppRouter {
@@ -50,5 +51,6 @@ class AppRouter {
     AppRoutes.invites: (_) => const InvitesInboxScreen(),
     AppRoutes.ranking: (_) => const RankingScreen(),
     AppRoutes.search: (_) => const SearchScreen(),
+    AppRoutes.actOgrHistory: (_) => const ActOgrHistoryScreen(),
   };
 }

@@ -11,6 +11,7 @@ abstract class AppRoutes {
 
   static const activity = '/activity';
   static const activityHistory = '/activity-history';
+  static const actOgrHistory = '/act-ogr-history';
 
   static const friends = '/friends';
   static const invites = '/invites';

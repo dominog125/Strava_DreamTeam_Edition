@@ -17,7 +17,7 @@ namespace Strava_DreamTeam_Edition_API.Controllers
             _db = db;
         }
 
-        // GET: api/activitycategories
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ActivityCategoryDto>>> GetAll(CancellationToken ct)
         {
@@ -34,7 +34,7 @@ namespace Strava_DreamTeam_Edition_API.Controllers
             return Ok(items);
         }
 
-        // GET: api/activitycategories/{id}
+
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<ActivityCategoryDto>> GetById(Guid id, CancellationToken ct)
         {
@@ -54,7 +54,7 @@ namespace Strava_DreamTeam_Edition_API.Controllers
             return Ok(item);
         }
 
-        // POST: api/activitycategories
+
         [HttpPost]
         public async Task<ActionResult<ActivityCategoryDto>> Create(
             [FromBody] CreateActivityCategoryRequest request,
@@ -88,7 +88,6 @@ namespace Strava_DreamTeam_Edition_API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
         }
 
-        // PUT: api/activitycategories/{id}
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(
             Guid id,
@@ -119,7 +118,7 @@ namespace Strava_DreamTeam_Edition_API.Controllers
             return NoContent();
         }
 
-        // DELETE: api/activitycategories/{id}
+    
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
         {

@@ -769,6 +769,22 @@
   },
   {
     "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.AuthController",
+    "Method": "ForgotPassword",
+    "RelativePath": "api/Auth/forgot-password",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Strava_DreamTeam_Edition_API.Models.DTO.ForgotPasswordRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/Auth/Login",
     "HttpMethod": "POST",
@@ -794,6 +810,22 @@
       {
         "Name": "dto",
         "Type": "Strava_DreamTeam_Edition_API.Models.DTO.RegisterRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Strava_DreamTeam_Edition_API.Controllers.AuthController",
+    "Method": "ResetPassword",
+    "RelativePath": "api/Auth/reset-password",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Strava_DreamTeam_Edition_API.Models.DTO.ResetPasswordRequestDto",
         "IsRequired": true
       }
     ],

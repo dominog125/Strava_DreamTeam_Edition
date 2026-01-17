@@ -9,7 +9,7 @@ namespace Strava_DreamTeam_Edition_API.Models.DTO
         public string? Description { get; set; }
         public decimal? LengthInKm { get; set; }
         public string AuthorId { get; set; } = default!;
-        // NOWE
+        public string? AuthorUserName { get; set; }
         public decimal? PaceMinPerKm { get; set; }
         public decimal? SpeedKmPerHour { get; set; }
         public int ActiveSeconds { get; set; }
@@ -56,7 +56,6 @@ namespace Strava_DreamTeam_Edition_API.Models.DTO
         public decimal? LengthInKm { get; set; }
         public int? ActiveSeconds { get; set; }
 
-        // NOWE
         public decimal? PaceMinPerKm { get; set; }
         public decimal? SpeedKmPerHour { get; set; }
         public Guid ActivityCategoryId { get; set; }

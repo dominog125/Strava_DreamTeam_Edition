@@ -18,7 +18,6 @@ namespace Strava_DreamTeam_Edition_API.Repositories
 
         public string CreateJWTToken(IdentityUser user, List<string> roles)
         {
-            // Create claims
             var claims = new List<Claim>();
             claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
             claims.Add(new Claim(ClaimTypes.Email, user.Email));

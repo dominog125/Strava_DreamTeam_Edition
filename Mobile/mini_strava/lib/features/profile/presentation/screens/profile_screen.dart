@@ -1,15 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mini_strava/core/di/injector.dart';
 import 'package:mini_strava/core/navigation/app_routes.dart';
+import 'package:mini_strava/core/network/api_client.dart';
 import 'package:mini_strava/features/auth/domain/usecases/logout_usecase.dart';
-import 'package:mini_strava/features/activity_history/domain/usecases/get_user_stats_usecase.dart';
 import 'package:mini_strava/features/activity_history/domain/entities/user_stats.dart';
 import 'package:mini_strava/features/profile/domain/entities/user_profile.dart';
-import 'package:mini_strava/features/activity_history/data/datasources/activity_history_local_data_source.dart';
+
 import '../controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -22,11 +24,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileController c;
   late final LogoutUseCase _logout;
-  late final GetUserStatsUseCase _getStats;
-  late final ActivityHistoryLocalDataSource _historyLocal;
-
-  StreamSubscription? _boxSub;
-  Timer? _statsDebounce;
+  late final Dio _dio;
 
   UserStats? _stats;
   bool _statsLoading = true;
@@ -36,20 +34,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     c = ProfileController();
     _logout = sl<LogoutUseCase>();
-    _getStats = sl<GetUserStatsUseCase>();
-    _historyLocal = sl<ActivityHistoryLocalDataSource>();
+    _dio = sl<ApiClient>().dio;
 
     c.addListener(_onChanged);
     c.load();
     _loadStats();
-
-    _boxSub = _historyLocal.box.watch().listen((_) {
-      _statsDebounce?.cancel();
-      _statsDebounce = Timer(const Duration(milliseconds: 200), () {
-        if (!mounted) return;
-        _loadStats();
-      });
-    });
   }
 
   void _onChanged() => setState(() {});
@@ -57,10 +46,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadStats() async {
     setState(() => _statsLoading = true);
     try {
-      final s = await _getStats();
+      final res = await _dio.get(
+        '/api/profile/stats',
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {'accept': 'text/plain'},
+        ),
+      );
+
+      final raw = res.data;
+      final decoded = raw is String ? jsonDecode(raw) : raw;
+
+      int trainingsCount = 0;
+      double totalDistanceKm = 0.0;
+      double avgSpeedKmH = 0.0;
+
+      if (decoded is Map) {
+        final m = decoded.cast<String, dynamic>();
+        trainingsCount = (m['trainingsCount'] as num?)?.toInt() ?? 0;
+        totalDistanceKm =
+            (m['totalDistanceKm'] as num?)?.toDouble() ?? 0.0;
+        avgSpeedKmH =
+            (m['averageSpeedKmPerHour'] as num?)?.toDouble() ?? 0.0;
+      }
+
       if (!mounted) return;
       setState(() {
-        _stats = s;
+        _stats = UserStats(
+          workoutsCount: trainingsCount,
+          totalDistanceKm: totalDistanceKm,
+          avgSpeedKmH: avgSpeedKmH,
+        );
         _statsLoading = false;
       });
     } catch (_) {
@@ -78,8 +94,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
-    _statsDebounce?.cancel();
-    _boxSub?.cancel();
     c.removeListener(_onChanged);
     c.disposeControllers();
     c.dispose();
@@ -88,8 +102,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final birthDateText =
-    c.birthDate == null ? '-' : DateFormat('yyyy-MM-dd').format(c.birthDate!);
+    final birthDateText = c.birthDate == null
+        ? '-'
+        : DateFormat('yyyy-MM-dd').format(c.birthDate!);
+
     final fullName = '${c.firstName.text} ${c.lastName.text}'.trim();
     final heightText = _withUnitOrDash(c.heightCm.text, 'cm');
     final weightText = _withUnitOrDash(c.weightKg.text, 'kg');
@@ -117,7 +133,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: const Icon(Icons.settings),
             tooltip: 'Ustawienia profilu',
             onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.profileSettings).then((_) async {
+              Navigator.pushNamed(context, AppRoutes.profileSettings)
+                  .then((_) async {
                 await c.load();
                 await _loadStats();
               });
@@ -130,7 +147,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               await _logout();
               if (!context.mounted) return;
               Navigator.of(context, rootNavigator: true)
-                  .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+                  .pushNamedAndRemoveUntil(
+                AppRoutes.login,
+                    (_) => false,
+              );
             },
           ),
         ],
@@ -146,7 +166,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             CircleAvatar(
               radius: 48,
               backgroundImage: avatarProvider,
-              child: avatarProvider == null ? const Icon(Icons.person, size: 48) : null,
+              child: avatarProvider == null
+                  ? const Icon(Icons.person, size: 48)
+                  : null,
             ),
             const SizedBox(height: 16),
             Text(
@@ -191,42 +213,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.activity),
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.activity),
                 icon: const Icon(Icons.directions_run),
                 label: const Text('Rozpocznij aktywność'),
               ),
             ),
+
             const SizedBox(height: 12),
 
+            /// ✅ ZOSTAŁ TYLKO TEN JEDEN PRZYCISK HISTORII
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () async {
-                  await Navigator.pushNamed(context, AppRoutes.activityHistory);
-                  if (!mounted) return;
-                  await _loadStats();
-                },
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.actOgrHistory),
                 icon: const Icon(Icons.history),
                 label: const Text('Historia aktywności'),
               ),
             ),
 
-            // ✅ NOWY PRZYCISK: identyczny, ale prowadzi do nowej strony act_ogr_history
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.actOgrHistory),
-                icon: const Icon(Icons.history), // identyczna ikonka jak wyżej
-                label: const Text('Historia aktywności'), // identyczny tekst jak wyżej
-              ),
-            ),
-
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.options),
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.options),
                 icon: const Icon(Icons.tune),
                 label: const Text('Opcje'),
               ),
@@ -270,7 +282,10 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
+          Expanded(
+            child:
+            Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          ),
           const SizedBox(width: 12),
           Text(value, style: Theme.of(context).textTheme.bodyLarge),
         ],
@@ -310,4 +325,3 @@ class _StatTile extends StatelessWidget {
     );
   }
 }
-

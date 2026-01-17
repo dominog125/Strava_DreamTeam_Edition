@@ -1,9 +1,7 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-
 import '../controller/profile_controller.dart';
 import '../../domain/entities/user_profile.dart';
 
@@ -43,7 +41,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         imageQuality: 85,
       );
       if (xfile == null) return;
-
       c.setAvatarPath(xfile.path);
     } catch (e) {
       if (!mounted) return;
@@ -76,6 +73,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
     final hasAvatar = hasLocal || hasApi;
 
+    // żeby obramówka była zawsze widoczna (nie ginęła na ciemnym tle)
+    final outlineColor =
+    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
       body: Padding(
@@ -90,31 +91,52 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
+                      // lekko w prawo
+                      const SizedBox(width: 6),
+
+                      // większy avatar, ale dalej mieści się w kafelku
                       CircleAvatar(
-                        radius: 34,
+                        radius: 38,
                         backgroundImage: avatarProvider,
                         child: avatarProvider == null
-                            ? const Icon(Icons.person, size: 32)
+                            ? const Icon(Icons.person, size: 36)
                             : null,
                       ),
-                      const SizedBox(width: 12),
+
+                      const SizedBox(width: 20),
+
+                      // przyciski bliżej prawej krawędzi
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            OutlinedButton.icon(
-                              onPressed: c.isLoading ? null : _pickAvatar,
-                              icon: const Icon(Icons.photo_library_outlined),
-                              label: Text(hasAvatar ? 'Zmień avatar' : 'Wybierz avatar'),
-                            ),
-                            const SizedBox(height: 6),
-                            if (hasAvatar)
-                              TextButton.icon(
-                                onPressed: c.isLoading ? null : _deleteAvatar,
-                                icon: const Icon(Icons.delete_outline),
-                                label: const Text('Usuń avatar'),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: c.isLoading ? null : _pickAvatar,
+                                icon: const Icon(Icons.photo_library_outlined),
+                                label: Text(
+                                  hasAvatar ? 'Zmień avatar' : 'Wybierz avatar',
+                                ),
                               ),
-                          ],
+                              const SizedBox(height: 8),
+
+                              // obramówka zawsze widoczna
+                              if (hasAvatar)
+                                OutlinedButton.icon(
+                                  onPressed: c.isLoading ? null : _deleteAvatar,
+                                  icon: const Icon(Icons.delete_outline),
+                                  label: const Text('Usuń avatar'),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color: outlineColor,
+                                      width: 1.3,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -122,18 +144,21 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 ),
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: c.firstName,
                 decoration: const InputDecoration(labelText: 'Imię'),
                 validator: (v) => c.validateName(v, 'imię'),
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: c.lastName,
                 decoration: const InputDecoration(labelText: 'Nazwisko'),
                 validator: (v) => c.validateName(v, 'nazwisko'),
               ),
               const SizedBox(height: 12),
+
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Data urodzenia'),
@@ -145,7 +170,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   final now = DateTime.now();
                   final picked = await showDatePicker(
                     context: context,
-                    initialDate: c.birthDate ?? DateTime(now.year - 18, 1, 1),
+                    initialDate: c.birthDate ??
+                        DateTime(now.year - 18, 1, 1),
                     firstDate: DateTime(1900, 1, 1),
                     lastDate: now,
                   );
@@ -153,18 +179,24 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 },
               ),
               const SizedBox(height: 6),
+
               DropdownButtonFormField<Gender>(
                 initialValue: c.gender,
                 decoration: const InputDecoration(labelText: 'Płeć'),
                 items: const [
-                  DropdownMenuItem(value: Gender.notSet, child: Text('Nie podano')),
-                  DropdownMenuItem(value: Gender.male, child: Text('Mężczyzna')),
-                  DropdownMenuItem(value: Gender.female, child: Text('Kobieta')),
+                  DropdownMenuItem(
+                      value: Gender.notSet, child: Text('Nie podano')),
+                  DropdownMenuItem(
+                      value: Gender.male, child: Text('Mężczyzna')),
+                  DropdownMenuItem(
+                      value: Gender.female, child: Text('Kobieta')),
                   DropdownMenuItem(value: Gender.other, child: Text('Inna')),
                 ],
-                onChanged: c.isLoading ? null : (g) => c.setGender(g ?? Gender.notSet),
+                onChanged:
+                c.isLoading ? null : (g) => c.setGender(g ?? Gender.notSet),
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: c.heightCm,
                 keyboardType: TextInputType.number,
@@ -172,6 +204,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 validator: c.validateHeight,
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: c.weightKg,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -179,6 +212,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 validator: c.validateWeight,
               ),
               const SizedBox(height: 18),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

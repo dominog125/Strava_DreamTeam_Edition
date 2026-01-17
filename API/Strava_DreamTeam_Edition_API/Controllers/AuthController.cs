@@ -53,9 +53,6 @@ namespace Strava_DreamTeam_Edition_API.Controllers
                     appDb.UserProfiles.Add(new UserProfile
                     {
                         UserId = user.Id,
-                    // opcjonalnie: domyślne wartości
-                    // FirstName = null,
-                    // LastName = null,
                         UpdatedAt = DateTime.UtcNow
                     });
 
@@ -93,14 +90,14 @@ namespace Strava_DreamTeam_Edition_API.Controllers
                     {
                         if (await userManager.IsLockedOutAsync(user))
                         {
-                        // Możesz zwrócić 403 lub 423 Locked – 423 jest czytelne semantycznie
+                      
                             return StatusCode(StatusCodes.Status423Locked, "Account is blocked.");
                         }
                     var roles = await userManager.GetRolesAsync(user);
 
                         if (roles != null)
                         {
-                            // Create Token
+                         
                             var jwtToken = tokenRepository.CreateJWTToken(user, roles.ToList());
 
                             var response = new LoginResponseDto
@@ -117,6 +114,45 @@ namespace Strava_DreamTeam_Edition_API.Controllers
 
                 return BadRequest("Username or password incorrect");
             }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(
+        ForgotPasswordRequestDto dto,
+        CancellationToken ct)
+        {
+            var user = await userManager.FindByEmailAsync(dto.Email);
+
+            if (user == null)
+                return Ok("Jeśli konto istnieje, email został wysłany.");
+
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+
+            return Ok(new
+            {
+                Message = "Token resetu wygenerowany",
+                Token = token
+            });
         }
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(
+        ResetPasswordRequestDto dto,
+        CancellationToken ct)
+        {
+            var user = await userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+                return BadRequest("Nieprawidłowe dane.");
+
+            var result = await userManager.ResetPasswordAsync(
+                user,
+                dto.Token,
+                dto.NewPassword
+            );
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok("Hasło zostało zmienione.");
+        }
+    }
     }
 

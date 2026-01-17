@@ -21,7 +21,6 @@
         public Guid CategoryId { get; set; }
         public ActivityCategory Category { get; set; } = default!;
 
-        // === TRACKING ===
         public ActivityStatus Status { get; set; }
         public DateTime StartedAt { get; set; }
         public DateTime? FinishedAt { get; set; }

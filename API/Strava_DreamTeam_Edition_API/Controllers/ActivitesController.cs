@@ -20,10 +20,38 @@ namespace Strava_DreamTeam_Edition_API.Controllers
             _db = db;
             _authDb = authDb;
         }
+        private async Task<bool> CanAccessActivityAsync(
+        string requesterId,
+        string authorId,
+        CancellationToken ct)
+        {
+            if (requesterId == authorId)
+                return true;
 
-        // GET: api/activities
-        // User: tylko swoje + filtry + sortowanie
-        // Admin: wszystkie + opcjonalny filtr po nazwie użytkownika + filtry + sortowanie
+            // Accepted w obie strony (u Ciebie relacje są lustrzane)
+            var accepted = await _db.FriendRelations
+                .AsNoTracking()
+                .AnyAsync(r =>
+                    r.UserId == requesterId &&
+                    r.OtherUserId == authorId &&
+                    r.Status == FriendRelationStatus.Accepted,
+                    ct);
+
+            if (!accepted)
+                return false;
+
+            // brak blokady w żadną stronę
+            var blocked = await _db.FriendRelations
+                .AsNoTracking()
+                .AnyAsync(r =>
+                    (r.UserId == requesterId && r.OtherUserId == authorId && r.Status == FriendRelationStatus.Blocked) ||
+                    (r.UserId == authorId && r.OtherUserId == requesterId && r.Status == FriendRelationStatus.Blocked),
+                    ct);
+
+            return !blocked;
+        }
+
+
         [Authorize(Roles = "User,Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ActivityDto>>> GetAll([FromQuery] ActivityQuery query, CancellationToken ct)
@@ -400,9 +428,7 @@ namespace Strava_DreamTeam_Edition_API.Controllers
             return NoContent();
         }
 
-        // DELETE: api/activities/{id}
-        // User: tylko swoje
-        // Admin: każde
+ 
         [Authorize(Roles = "User,Admin")]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
@@ -430,6 +456,9 @@ namespace Strava_DreamTeam_Edition_API.Controllers
         public async Task<IActionResult> GetUsePhoto(Guid id, CancellationToken ct)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
             var isAdmin = User.IsInRole("Admin");
 
             var item = await _db.Activities
@@ -438,8 +467,15 @@ namespace Strava_DreamTeam_Edition_API.Controllers
                 .Select(a => new { a.AuthorId, a.UsePhoto, a.UsePhotoContentType })
                 .FirstOrDefaultAsync(ct);
 
-            if (item == null || item.UsePhoto == null) return NotFound();
-            if (!isAdmin && item.AuthorId != userId) return Forbid();
+            if (item == null || item.UsePhoto == null)
+                return NotFound();
+
+            if (!isAdmin)
+            {
+                var canAccess = await CanAccessActivityAsync(userId, item.AuthorId, ct);
+                if (!canAccess)
+                    return Forbid();
+            }
 
             return File(item.UsePhoto, item.UsePhotoContentType!);
         }
@@ -476,6 +512,9 @@ namespace Strava_DreamTeam_Edition_API.Controllers
         public async Task<IActionResult> GetMapPhoto(Guid id, CancellationToken ct)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
             var isAdmin = User.IsInRole("Admin");
 
             var item = await _db.Activities
@@ -484,11 +523,19 @@ namespace Strava_DreamTeam_Edition_API.Controllers
                 .Select(a => new { a.AuthorId, a.MapPhoto, a.MapPhotoContentType })
                 .FirstOrDefaultAsync(ct);
 
-            if (item == null || item.MapPhoto == null) return NotFound();
-            if (!isAdmin && item.AuthorId != userId) return Forbid();
+            if (item == null || item.MapPhoto == null)
+                return NotFound();
+
+            if (!isAdmin)
+            {
+                var canAccess = await CanAccessActivityAsync(userId, item.AuthorId, ct);
+                if (!canAccess)
+                    return Forbid();
+            }
 
             return File(item.MapPhoto, item.MapPhotoContentType!);
         }
+
 
         [Authorize(Roles = "User,Admin")]
         [HttpGet("{id:guid}/with-photos")]

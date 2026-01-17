@@ -45,14 +45,20 @@ class Activity extends Model
 
     public static function translateActivityType(string $storedValue): string
     {
-        $normalized = match ($storedValue) {
-            'Spacer' => 'walk',
-            'Bieg' => 'run',
-            'Rower' => 'bike',
+        $mappedKey = match ($storedValue) {
+            'Spacer'=> 'walk',
+            'Bieg'=> 'run',
+            'Rower'=> 'bike',
+            'Trening siłowy' => 'strength_training',
+            'Hiking' => 'hiking',
             default => $storedValue,
         };
 
-        $key = 'activity_types.' . $normalized;
+        if ($mappedKey === null) {
+            return $storedValue;
+        }
+
+        $key = 'activity_types.' . $mappedKey;
 
         if (trans()->has($key)) {
             return __($key);

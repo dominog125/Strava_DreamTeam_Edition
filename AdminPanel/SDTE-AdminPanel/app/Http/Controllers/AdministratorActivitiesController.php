@@ -3,14 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Application\Administration\Activities\AdministratorActivitiesDeleter;
-use App\Models\Activity;
+use App\Application\Administration\Activities\AdministratorActivitiesFilters;
+use App\Application\Administration\Activities\AdministratorActivitiesReader;
+use App\Application\Administration\Activities\AdministratorActivityCategoriesReader;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\View\View;
+use RuntimeException;
 
 class AdministratorActivitiesController extends Controller
 {
+    public function __construct(
+        private readonly AdministratorActivitiesReader $administratorActivitiesReader,
+        private readonly AdministratorActivityCategoriesReader $administratorActivityCategoriesReader,
+    ) {
+    }
+
     public function index(Request $request): View
     {
         $validated = $request->validate([
@@ -19,77 +27,72 @@ class AdministratorActivitiesController extends Controller
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
             'distance_min' => ['nullable', 'numeric', 'min:0'],
             'distance_max' => ['nullable', 'numeric', 'gte:distance_min'],
-            'activity_type' => ['nullable', 'string', 'max:64'],
+            'activity_type' => ['nullable', 'string', 'max:120'],
             'per_page' => ['nullable', 'integer', 'in:10,25,50,100'],
         ]);
 
-        $searchUserName = (string) ($validated['search_user_name'] ?? '');
-        $dateFrom = $validated['date_from'] ?? null;
-        $dateTo = $validated['date_to'] ?? null;
-        $distanceMin = $validated['distance_min'] ?? null;
-        $distanceMax = $validated['distance_max'] ?? null;
-        $activityType = (string) ($validated['activity_type'] ?? '');
-        $perPage = (int) ($validated['per_page'] ?? 10);
+        $distanceMinInput = $request->input('distance_min');
+        $distanceMaxInput = $request->input('distance_max');
 
-        $query = Activity::query()->with('user');
+        $distanceMin = $request->filled('distance_min')
+            ? (float) $distanceMinInput
+            : null;
 
-        if ($searchUserName !== '') {
-            $query->whereHas('user', function ($userQuery) use ($searchUserName) {
-                $userQuery->where('name', 'like', '%' . $searchUserName . '%');
-            });
-        }
+        $distanceMax = $request->filled('distance_max')
+            ? (float) $distanceMaxInput
+            : null;
 
-        if ($activityType !== '') {
-            $query->where('activity_type', $activityType);
-        }
+        $filters = new AdministratorActivitiesFilters(
+            searchUserName: isset($validated['search_user_name']) && trim((string) $validated['search_user_name']) !== ''
+                ? (string) $validated['search_user_name']
+                : null,
+            activityType: isset($validated['activity_type']) && trim((string) $validated['activity_type']) !== ''
+                ? (string) $validated['activity_type']
+                : null,
+            dateFrom: isset($validated['date_from']) && trim((string) $validated['date_from']) !== ''
+                ? (string) $validated['date_from']
+                : null,
+            dateTo: isset($validated['date_to']) && trim((string) $validated['date_to']) !== ''
+                ? (string) $validated['date_to']
+                : null,
+            distanceMin: $distanceMin,
+            distanceMax: $distanceMax,
+            perPage: (int) ($validated['per_page'] ?? 10),
+        );
 
-        if ($dateFrom || $dateTo) {
-            $from = $dateFrom ? Carbon::parse($dateFrom)->startOfDay() : Carbon::minValue();
-            $to = $dateTo ? Carbon::parse($dateTo)->endOfDay() : Carbon::maxValue();
+        $activities = $this->administratorActivitiesReader
+            ->paginate($filters)
+            ->appends($request->query());
 
-            $query->whereBetween('created_at', [$from, $to]);
-        }
-
-        if ($distanceMin !== null) {
-            $query->where('distance_kilometers', '>=', $distanceMin);
-        }
-
-        if ($distanceMax !== null) {
-            $query->where('distance_kilometers', '<=', $distanceMax);
-        }
-
-        $activities = $query
-            ->orderByDesc('created_at')
-            ->paginate($perPage)
-            ->withQueryString();
-
-        $activityTypes = Activity::query()
-            ->select('activity_type')
-            ->distinct()
-            ->orderBy('activity_type')
-            ->pluck('activity_type');
+        $activityTypes = $this->administratorActivityCategoriesReader->listNames();
 
         return view('admin.activities.index', [
             'activities' => $activities,
             'activityTypes' => $activityTypes,
             'filters' => [
-                'search_user_name' => $searchUserName,
-                'date_from' => $dateFrom,
-                'date_to' => $dateTo,
-                'distance_min' => $distanceMin,
-                'distance_max' => $distanceMax,
-                'activity_type' => $activityType,
-                'per_page' => $perPage,
+                'search_user_name' => $filters->searchUserName ?? '',
+                'date_from' => $filters->dateFrom,
+                'date_to' => $filters->dateTo,
+                'distance_min' => $request->filled('distance_min') ? (string) $distanceMinInput : '',
+                'distance_max' => $request->filled('distance_max') ? (string) $distanceMaxInput : '',
+                'activity_type' => $filters->activityType ?? '',
+                'per_page' => $filters->perPage,
             ],
         ]);
     }
 
-    public function destroy(Activity $activity, AdministratorActivitiesDeleter $activitiesDeleter): RedirectResponse
+    public function destroy(string $activity, Request $request, AdministratorActivitiesDeleter $activitiesDeleter): RedirectResponse
     {
-        $activitiesDeleter->delete((string) $activity->uuid);
+        try {
+            $activitiesDeleter->delete($activity);
 
-        return redirect()
-            ->back()
-            ->with('status', 'Aktywność została usunięta.');
+            return redirect()
+                ->back()
+                ->with('status', __('ui.activity_deleted'));
+        } catch (RuntimeException $exception) {
+            return redirect()
+                ->back()
+                ->with('error', $exception->getMessage());
+        }
     }
 }

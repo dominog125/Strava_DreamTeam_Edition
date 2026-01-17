@@ -4,10 +4,12 @@ namespace App\Infrastructure\Administration\Users;
 
 use App\Application\Administration\Users\AdministratorUsersFilters;
 use App\Application\Administration\Users\AdministratorUsersReader;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Fluent;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -15,29 +17,45 @@ class ApiAdministratorUsersReader implements AdministratorUsersReader
 {
     public function paginate(AdministratorUsersFilters $filters): LengthAwarePaginator
     {
-        $apiBaseUrl = (string) config('administration.api.base_url');
+        $apiBaseUrl = rtrim((string) config('administration.api.base_url'));
+        $timeoutSeconds = (int) config('administration.api.timeout_seconds');
 
         if (trim($apiBaseUrl) === '') {
-            throw new RuntimeException('Missing configuration: administration.api.base_url');
+            throw new RuntimeException(__('ui.api_configuration_missing'));
         }
 
-        $usersUrl = rtrim($apiBaseUrl, '/') . '/api/admin/users';
+        $usersUrl = $apiBaseUrl . '/api/admin/users';
 
-        $pendingRequest = Http::acceptJson()->timeout(10);
+        try {
+            $pendingRequest = Http::acceptJson()
+                ->timeout($timeoutSeconds)
+                ->withHeaders([
+                    'Accept-Language' => App::getLocale(),
+                ]);
 
-        $bearerToken = $this->resolveBearerToken();
+            $bearerToken = $this->resolveBearerToken();
 
-        if (trim($bearerToken) !== '') {
-            $pendingRequest = $pendingRequest->withToken($bearerToken);
+            if (trim($bearerToken) !== '') {
+                $pendingRequest = $pendingRequest->withToken($bearerToken);
+            }
+
+            $response = $pendingRequest->get($usersUrl);
+        } catch (ConnectionException) {
+            throw new RuntimeException(__('ui.api_connection_error'));
         }
 
-        $apiUsersResponse = $pendingRequest->get($usersUrl);
-        $apiUsersResponse->throw();
+        if (in_array($response->status(), [401, 403], true)) {
+            throw new RuntimeException(__('ui.api_auth_error'));
+        }
 
-        $apiPayload = $apiUsersResponse->json();
+        if (! $response->successful()) {
+            throw new RuntimeException(__('ui.api_invalid_response'));
+        }
+
+        $apiPayload = $response->json();
 
         if (! is_array($apiPayload)) {
-            $apiPayload = [];
+            throw new RuntimeException(__('ui.api_invalid_response'));
         }
 
         $apiUsers = $apiPayload;

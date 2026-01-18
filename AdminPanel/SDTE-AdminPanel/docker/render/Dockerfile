@@ -37,6 +37,11 @@ COPY --from=vendor /app/vendor /app/vendor
 COPY . .
 COPY --from=assets /app/public/build /app/public/build
 
+RUN rm -f public/hot
+
+COPY server.php /server.php
+RUN test -f /server.php
+
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
     && php artisan package:discover --ansi \
     && chown -R www-data:www-data storage bootstrap/cache
@@ -57,4 +62,4 @@ ENV SESSION_DRIVER=file
 
 USER www-data
 
-CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t public /app/server.php"]
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t /app/public /server.php"]

@@ -39,9 +39,6 @@ COPY --from=assets /app/public/build /app/public/build
 
 RUN rm -f public/hot
 
-COPY server.php /server.php
-RUN test -f /server.php
-
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
     && php artisan package:discover --ansi \
     && chown -R www-data:www-data storage bootstrap/cache
@@ -60,8 +57,7 @@ ENV LOG_CHANNEL=errorlog
 ENV LOG_LEVEL=info
 ENV SESSION_DRIVER=file
 ENV CACHE_STORE=file
-ENV CACHE_DRIVER=file
 
 USER www-data
 
-CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t /public /server.php"]
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t public server.php"]

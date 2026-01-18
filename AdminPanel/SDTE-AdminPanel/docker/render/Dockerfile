@@ -57,4 +57,4 @@ ENV SESSION_DRIVER=file
 
 USER www-data
 
-CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t public server.php"]
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t public /app/server.php"]

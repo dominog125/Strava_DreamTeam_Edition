@@ -10,11 +10,11 @@ RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
 RUN npm run build || true
 
-FROM php:8.3-cli-alpine
+FROM php:8.4-cli-alpine
 WORKDIR /app
 
 RUN apk add --no-cache icu-dev oniguruma-dev libzip-dev zip unzip \
-  && docker-php-ext-install intl pdo_mysql zip
+  && docker-php-ext-install intl pdo_mysql zip opcache
 
 COPY --from=vendor /app/vendor /app/vendor
 COPY . .

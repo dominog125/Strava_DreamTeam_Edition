@@ -24,29 +24,18 @@ return [
     'dashboard_summary_title' => 'Podsumowanie systemu',
     'dashboard_user_count' => 'Liczba użytkowników',
     'dashboard_activity_count' => 'Liczba aktywności',
-    'dashboard_total_distance_km' => 'Total distance (km)',
-    
+    'dashboard_total_distance_km' => 'Łączny dystans (km)',
+
     'users_filter_title' => 'Filtr użytkowników',
     'users_filter_name' => 'Nazwa użytkownika',
     'users_filter_email' => 'Email',
-    'per_page' => 'Użytkowników na stronę',
-    'apply_filter' => 'Zastosuj filtr',
-
     'users_list_title' => 'Lista użytkowników',
     'no_users_message' => 'Brak użytkowników dla wybranych filtrów.',
 
     'user_name' => 'Nazwa użytkownika',
     'email' => 'Email',
-    'created_at' => 'Data utworzenia',
-    'discord_connected' => 'Discord?',
-    'google_connected' => 'Google?',
-
-    'discord' => 'Discord',
-    'google' => 'Google',
-    'yes' => 'Tak',
-    'no' => 'Nie',
-    
-    'admin_activities_title' => 'Aktywności',
+    'is_blocked' => 'Zablokowany?',
+    'lockout_end_utc' => 'Blokada do',
 
     'activities_filter_title' => 'Filtr aktywności',
     'activities_list_title' => 'Lista aktywności',
@@ -59,18 +48,29 @@ return [
     'distance_max_km' => 'Dystans max (km)',
     'activity_type' => 'Typ aktywności',
 
+    'per_page' => 'Na stronę',
     'apply_filter' => 'Zastosuj filtr',
     'all' => 'Wszystkie',
-    'per_page' => 'Ilość na stronę',
 
-    'user_name' => 'Nazwa użytkownika',
     'added_at' => 'Data dodania',
     'length' => 'Długość',
     'actions' => 'Akcje',
+
+    'yes' => 'Tak',
+    'no' => 'Nie',
 
     'date' => 'Data',
     'type' => 'Typ',
 
     'delete' => 'Usuń',
     'confirm_delete_activity' => 'Czy na pewno usunąć tę aktywność?',
+    'activity_deleted' => 'Aktywność została usunięta.',
+    'activity_delete_failed' => 'Nie udało się usunąć aktywności.',
+
+    'api_configuration_missing' => 'Brak konfiguracji API',
+    'api_connection_error' => 'Brak połączenia z API',
+    'invalid_credentials' => 'Nieprawidłowy login lub hasło',
+    'api_auth_error' => 'Błąd autoryzacji po stronie API',
+    'api_invalid_response' => 'Nieprawidłowa odpowiedź API',
+    'page_expired_try_again' => 'Sesja wygasła. Odśwież stronę i spróbuj ponownie.',
 ];

@@ -5,6 +5,8 @@ use App\Http\Middleware\SetLocaleFromSession;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'administrator' => \App\Http\Middleware\AdministratorAccessMiddleware::class,
+            'administrator' => AdministratorAccessMiddleware::class,
         ]);
 
         $middleware->web(append: [
@@ -23,5 +25,19 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (TokenMismatchException $exception, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => __('ui.page_expired_try_again'),
+                ], 419);
+            }
+
+            return redirect()
+                ->route('login')
+                ->withInput($request->only('login'))
+                ->withErrors([
+                    'login' => __('ui.page_expired_try_again'),
+                ]);
+        });
     })
     ->create();

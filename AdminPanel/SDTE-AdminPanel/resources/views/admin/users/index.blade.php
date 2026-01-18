@@ -57,41 +57,38 @@
                                 <x-admin.users.header-cell>
                                     {{ __('ui.user_name') }}
                                 </x-admin.users.header-cell>
+
                                 <x-admin.users.header-cell>
                                     {{ __('ui.email') }}
                                 </x-admin.users.header-cell>
-                                <x-admin.users.header-cell>
-                                    {{ __('ui.created_at') }}
-                                </x-admin.users.header-cell>
+
                                 <x-admin.users.header-cell align="center">
-                                    {{ __('ui.discord_connected') }}
+                                    {{ __('ui.is_blocked') }}
                                 </x-admin.users.header-cell>
+
                                 <x-admin.users.header-cell align="center">
-                                    {{ __('ui.google_connected') }}
+                                    {{ __('ui.lockout_end_utc') }}
                                 </x-admin.users.header-cell>
                             </tr>
                         </thead>
+
                         <tbody>
                             @foreach ($users as $user)
                                 <tr class="app-table-row">
                                     <x-admin.users.cell rounded="left">
-                                        {{ $user->name }}
+                                        {{ data_get($user, 'userName') ?? data_get($user, 'name') ?? '' }}
                                     </x-admin.users.cell>
 
                                     <x-admin.users.cell>
-                                        {{ $user->email }}
-                                    </x-admin.users.cell>
-
-                                    <x-admin.users.cell>
-                                        {{ $user->created_at?->format('Y-m-d H:i') }}
+                                        {{ data_get($user, 'email') ?? '' }}
                                     </x-admin.users.cell>
 
                                     <x-admin.users.cell align="center">
-                                        {{ $user->is_discord_connected ? __('ui.yes') : __('ui.no') }}
+                                        {{ (bool) (data_get($user, 'isBlocked') ?? data_get($user, 'is_blocked') ?? false) ? __('ui.yes') : __('ui.no') }}
                                     </x-admin.users.cell>
 
                                     <x-admin.users.cell align="center" rounded="right">
-                                        {{ $user->is_google_connected ? __('ui.yes') : __('ui.no') }}
+                                        <x-ui.date-time :value="data_get($user, 'lockoutEndUtc') ?? data_get($user, 'lockout_end_utc')" />
                                     </x-admin.users.cell>
                                 </tr>
                             @endforeach

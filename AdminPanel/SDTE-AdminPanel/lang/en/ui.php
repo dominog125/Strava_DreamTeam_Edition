@@ -18,39 +18,28 @@ return [
     'nav_users_abbr' => 'U',
     'nav_activities' => 'Activities',
     'nav_activities_abbr' => 'A',
-    'nav_logout' => 'Sign out',
-    'nav_logout_abbr' => 'O',
+    'nav_logout' => 'Logout',
+    'nav_logout_abbr' => 'L',
 
     'dashboard_summary_title' => 'System summary',
     'dashboard_user_count' => 'User count',
     'dashboard_activity_count' => 'Activity count',
     'dashboard_total_distance_km' => 'Total distance (km)',
-    
-    'users_filter_title' => 'User filters',
+
+    'users_filter_title' => 'Users filter',
     'users_filter_name' => 'Username',
     'users_filter_email' => 'Email',
-    'per_page' => 'Users per page',
-    'apply_filter' => 'Apply filters',
-
-    'users_list_title' => 'User list',
-    'no_users_message' => 'No users match the selected filters.',
+    'users_list_title' => 'Users list',
+    'no_users_message' => 'No users found for selected filters.',
 
     'user_name' => 'Username',
     'email' => 'Email',
-    'created_at' => 'Created at',
-    'discord_connected' => 'Discord?',
-    'google_connected' => 'Google?',
+    'is_blocked' => 'Blocked?',
+    'lockout_end_utc' => 'Lockout ends',
 
-    'discord' => 'Discord',
-    'google' => 'Google',
-    'yes' => 'Yes',
-    'no' => 'No',
-    
-    'admin_activities_title' => 'Activities',
-
-    'activities_filter_title' => 'Activity filters',
-    'activities_list_title' => 'Activity list',
-    'no_activities_message' => 'No activities match the selected filters.',
+    'activities_filter_title' => 'Activities filter',
+    'activities_list_title' => 'Activities list',
+    'no_activities_message' => 'No activities found for selected filters.',
 
     'filter_user' => 'User',
     'date_from' => 'Date from',
@@ -59,18 +48,29 @@ return [
     'distance_max_km' => 'Max distance (km)',
     'activity_type' => 'Activity type',
 
-    'apply_filter' => 'Apply filters',
-    'all' => 'All',
     'per_page' => 'Per page',
+    'apply_filter' => 'Apply filter',
+    'all' => 'All',
 
-    'user_name' => 'Username',
     'added_at' => 'Added at',
     'length' => 'Length',
     'actions' => 'Actions',
+
+    'yes' => 'Yes',
+    'no' => 'No',
 
     'date' => 'Date',
     'type' => 'Type',
 
     'delete' => 'Delete',
     'confirm_delete_activity' => 'Are you sure you want to delete this activity?',
+    'activity_deleted' => 'Activity has been deleted.',
+    'activity_delete_failed' => 'Failed to delete activity.',
+
+    'api_configuration_missing' => 'API configuration is missing',
+    'api_connection_error' => 'Unable to connect to the API',
+    'invalid_credentials' => 'Invalid login or password',
+    'api_auth_error' => 'API authorization error',
+    'api_invalid_response' => 'Invalid API response',
+    'page_expired_try_again' => 'Session expired. Refresh the page and try again.',
 ];

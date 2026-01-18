@@ -90,6 +90,12 @@
                 </div>
             @endif
 
+            @if (session('error'))
+                <div class="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800/40 dark:bg-red-950/40 dark:text-red-200">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             @if ($activities->isEmpty())
                 <p class="app-text-muted">
                     {{ __('ui.no_activities_message') }}
@@ -112,38 +118,28 @@
                                 <x-ui.table.header-cell align="right">{{ __('ui.actions') }}</x-ui.table.header-cell>
                             </tr>
                         </thead>
+
                         <tbody>
                             @foreach ($activities as $activity)
                                 <tr class="app-table-row">
                                     <x-ui.table.cell rounded="left">
-                                        {{ $activity->user?->name ?? '-' }}
+                                        {{ data_get($activity, 'authorName') ?? data_get($activity, 'authorId') ?? data_get($activity, 'user.name') ?? '-' }}
                                     </x-ui.table.cell>
 
                                     <x-ui.table.cell>
-                                        {{ $activity->created_at?->format('Y-m-d H:i') }}
+                                        <x-ui.date-time :value="data_get($activity, 'createdAt') ?? data_get($activity, 'created_at')" />
                                     </x-ui.table.cell>
 
                                     <x-ui.table.cell>
-                                        {{ $activity->activity_type_label }}
+                                        <x-admin.activities.type-label :activity="$activity" />
                                     </x-ui.table.cell>
 
                                     <x-ui.table.cell align="right">
-                                        {{ number_format((float) ($activity->distance_kilometers ?? 0), 2, ',', ' ') }} km
+                                        {{ number_format((float) (data_get($activity, 'lengthInKm') ?? data_get($activity, 'distance_kilometers') ?? 0), 2, ',', ' ') }} km
                                     </x-ui.table.cell>
 
                                     <x-ui.table.cell align="right" rounded="right">
-                                        <form
-                                            method="post"
-                                            action="{{ route('administrator.activities.destroy', $activity) }}"
-                                            onsubmit="return confirm('{{ __('ui.confirm_delete_activity') }}');"
-                                        >
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <x-ui.danger-button type="submit" class="px-4 py-1.5 text-xs">
-                                                {{ __('ui.delete') }}
-                                            </x-ui.danger-button>
-                                        </form>
+                                        <x-admin.activities.delete-form :activity="$activity" />
                                     </x-ui.table.cell>
                                 </tr>
                             @endforeach

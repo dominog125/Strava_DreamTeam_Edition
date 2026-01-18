@@ -5,13 +5,14 @@ use App\Http\Controllers\AdministratorDashboardController;
 use App\Http\Controllers\AdministratorUserController;
 use App\Http\Controllers\AdministratorActivitiesController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
-Route::get('/locale/{locale}', function (string $locale) {
+Route::get('/locale/{locale}', function (Request $request, string $locale) {
     if (! in_array($locale, ['pl', 'en'], true)) {
         abort(404);
     }
 
-    session(['locale' => $locale]);
+    $request->session()->put('locale', $locale);
 
     return redirect()->back();
 })->name('locale.switch');
